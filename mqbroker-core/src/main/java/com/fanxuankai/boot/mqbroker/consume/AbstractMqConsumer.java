@@ -16,7 +16,7 @@ import java.util.function.Function;
  * @author fanxuankai
  */
 @Slf4j
-public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T, Event> {
+public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T, Event<String>> {
 
     private final MsgReceiveMapper msgReceiveMapper;
 
@@ -26,7 +26,7 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
 
     @Override
     public void accept(T t) {
-        Event event = apply(t);
+        Event<String> event = apply(t);
         MsgReceive message = new MsgReceive();
         message.setCode(event.getKey());
         message.setTopic(event.getName());
@@ -45,8 +45,9 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
     }
 
     @Override
-    public Event apply(T t) {
-        return (Event) t;
+    @SuppressWarnings("unchecked")
+    public Event<String> apply(T t) {
+        return (Event<String>) t;
     }
 
 }

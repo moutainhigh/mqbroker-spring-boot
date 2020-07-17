@@ -87,9 +87,9 @@ mq-broker:
   # 拉取数据的间隔 ms
   #interval-millis: 1000
   # 发布回调超时
-  #publisher-callback-timeout: 20000
+  #publisher-callback-timeout: 300000
   # 消费超时
-  #consume-timeout: 20000
+  #consume-timeout: 300000
   # 手动确认
   #manual-acknowledge: false
   # 事件策略
@@ -101,10 +101,10 @@ mq-broker:
 ```
 @Service
 @Listener(event = "user")
-public class UserEventListener implements EventListener {
+public class UserEventListener implements EventListener<User> {
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(Event<User> event) {
         // do something
     }
 
@@ -113,12 +113,11 @@ public class UserEventListener implements EventListener {
 - Usage
 ```
 @Resource
-private EventPublisher eventPublisher;
+private EventPublisher<User> eventPublisher;
 
-eventPublisher.publish(IntStream.range(0, 100)
-                .mapToObj(value -> new Event()
-                        .setName("user")
+eventPublisher.publish(IntStream.range(0, 10)
+                .mapToObj(value -> new Event<User>().setName("user")
                         .setKey(UUID.randomUUID().toString())
-                        .setData("fanxuankai"))
+                        .setData(JMockData.mock(User.class)))
                 .collect(Collectors.toList()));
 ```

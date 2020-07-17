@@ -34,14 +34,14 @@ public class MqBrokerRocketAutoConfiguration {
             }
 
             @Override
-            public void accept(Event event) {
+            public void accept(Event<String> event) {
                 template.convertAndSend(event.getName(), event);
             }
         };
     }
 
     @Bean(initMethod = "start")
-    public DefaultMQPushConsumer pushConsumer(RocketMQProperties properties, AbstractMqConsumer<Event> mqConsumer) {
+    public DefaultMQPushConsumer pushConsumer(RocketMQProperties properties, AbstractMqConsumer<Event<?>> mqConsumer) {
         DefaultMQPushConsumer consumer =
                 new DefaultMQPushConsumer(properties.getProducer().getGroup());
         consumer.setNamesrvAddr(properties.getNameServer());
@@ -65,8 +65,8 @@ public class MqBrokerRocketAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<Event> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
-        return new AbstractMqConsumer<Event>(msgReceiveMapper) {
+    public AbstractMqConsumer<Event<String>> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
+        return new AbstractMqConsumer<Event<String>>(msgReceiveMapper) {
         };
     }
 }

@@ -8,11 +8,11 @@ import com.fanxuankai.boot.mqbroker.model.Event;
  * @author fanxuankai
  */
 @FunctionalInterface
-public interface EventListener {
+public interface EventListener<T> {
     /**
      * 监听
      *
      * @param event 事件
      */
-    void onEvent(Event event);
+    void onEvent(Event<T> event);
 }

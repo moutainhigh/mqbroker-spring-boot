@@ -16,6 +16,22 @@
         <module>mqbroker-rabbit-example</module>
         <module>mqbroker-rocket-example</module>
         <module>mqbroker-xxl-example</module>
+        <module>mqbroker-example-common</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jsonzou</groupId>
+            <artifactId>jmockdata</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

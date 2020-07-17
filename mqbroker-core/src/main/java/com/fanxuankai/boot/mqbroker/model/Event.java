@@ -12,7 +12,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class Event implements Serializable {
+public class Event<T> implements Serializable {
     /**
      * 事件名
      */
@@ -24,5 +24,5 @@ public class Event implements Serializable {
     /**
      * 数据
      */
-    private String data;
+    private T data;
 }

@@ -13,5 +13,5 @@ public interface EventDistributor {
      *
      * @param event 事件
      */
-    void distribute(Event event);
+    void distribute(Event<?> event);
 }

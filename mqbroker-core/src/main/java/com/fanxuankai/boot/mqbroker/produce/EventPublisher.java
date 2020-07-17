@@ -7,6 +7,6 @@ import com.fanxuankai.boot.mqbroker.model.Event;
  *
  * @author fanxuankai
  */
-public interface EventPublisher extends Publisher<Event> {
+public interface EventPublisher<T> extends Publisher<Event<T>> {
 
 }

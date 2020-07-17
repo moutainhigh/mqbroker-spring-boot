@@ -14,14 +14,15 @@ import java.util.List;
 public class AtMostManyEventDistributor extends AbstractEventDistributor {
 
     @Override
-    protected void onEvent(Event event, List<EventListener> eventListeners) {
-        eventListeners.forEach(eventListener -> {
+    @SuppressWarnings("rawtypes unchecked")
+    protected void onEvent(Event<?> event, List<EventListener<?>> eventListeners) {
+        for (EventListener eventListener : eventListeners) {
             try {
                 eventListener.onEvent(event);
             } catch (Exception e) {
                 log.error("事件处理异常", e);
             }
-        });
+        }
     }
 
     @Override

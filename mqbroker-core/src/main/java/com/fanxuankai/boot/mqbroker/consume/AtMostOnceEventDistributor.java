@@ -14,7 +14,8 @@ import java.util.List;
 public class AtMostOnceEventDistributor extends AbstractEventDistributor {
 
     @Override
-    protected void onEvent(Event event, List<EventListener> eventListeners) {
+    @SuppressWarnings("rawtypes unchecked")
+    protected void onEvent(Event<?> event, List<EventListener<?>> eventListeners) {
         for (EventListener eventListener : eventListeners) {
             try {
                 eventListener.onEvent(event);

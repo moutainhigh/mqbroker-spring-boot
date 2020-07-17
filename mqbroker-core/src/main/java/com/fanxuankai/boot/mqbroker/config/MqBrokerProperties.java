@@ -23,7 +23,7 @@ public class MqBrokerProperties {
     /**
      * 拉取消息的数量
      */
-    private int msgSize = 1000;
+    private int msgSize = 1_000;
     /**
      * 最大重试次数
      */
@@ -35,11 +35,11 @@ public class MqBrokerProperties {
     /**
      * 发布回调超时 ms
      */
-    private long publisherCallbackTimeout = 20_000;
+    private long publisherCallbackTimeout = 300_000;
     /**
      * 消费超时 ms
      */
-    private long consumeTimeout = 60_000;
+    private long consumeTimeout = 300_000;
     /**
      * 手动签收
      */

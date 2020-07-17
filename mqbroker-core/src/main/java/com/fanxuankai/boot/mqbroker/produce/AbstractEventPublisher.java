@@ -1,10 +1,11 @@
 package com.fanxuankai.boot.mqbroker.produce;
 
-import com.fanxuankai.commons.util.ThrowableUtils;
+import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.mqbroker.domain.MsgSend;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
+import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -19,14 +20,14 @@ import java.util.stream.Collectors;
  * @author fanxuankai
  */
 @Slf4j
-public abstract class AbstractEventPublisher implements EventPublisher {
+public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
 
     @Resource
     protected MsgSendService msgSendService;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
 
-    protected void persistence(Event event, boolean async) {
+    protected void persistence(Event<T> event, boolean async) {
         MsgSend msgSend = createMessageSend(event);
         if (async) {
             threadPoolExecutor.execute(() -> save(msgSend));
@@ -53,7 +54,7 @@ public abstract class AbstractEventPublisher implements EventPublisher {
         }
     }
 
-    protected void persistence(List<Event> events, boolean async) {
+    protected void persistence(List<Event<T>> events, boolean async) {
         if (events.size() == 1) {
             persistence(events.get(0), async);
             return;
@@ -68,11 +69,11 @@ public abstract class AbstractEventPublisher implements EventPublisher {
         }
     }
 
-    protected MsgSend createMessageSend(Event event) {
+    protected MsgSend createMessageSend(Event<?> event) {
         MsgSend message = new MsgSend();
         message.setTopic(event.getName());
         message.setCode(event.getKey());
-        message.setData(event.getData());
+        message.setData(JSON.toJSONString(event.getData()));
         message.setStatus(Status.CREATED.getCode());
         message.setRetry(0);
         Date now = new Date();

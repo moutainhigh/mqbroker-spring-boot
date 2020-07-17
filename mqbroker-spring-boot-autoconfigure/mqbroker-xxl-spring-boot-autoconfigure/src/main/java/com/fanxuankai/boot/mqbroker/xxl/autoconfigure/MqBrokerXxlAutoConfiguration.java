@@ -1,12 +1,16 @@
 package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
+import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.commons.util.MqConsumerUtil;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
+import com.fanxuankai.boot.mqbroker.model.Event;
+import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.xxl.mq.client.consumer.IMqConsumer;
 import com.xxl.mq.client.factory.XxlMqClientFactory;
 import com.xxl.mq.client.factory.impl.XxlMqSpringClientFactory;
+import com.xxl.mq.client.message.XxlMqMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -30,15 +34,26 @@ public class MqBrokerXxlAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public XxlMqProducer mqProducer() {
-        return new XxlMqProducer();
+    public AbstractMqProducer mqProducer() {
+        return new AbstractMqProducer() {
+            @Override
+            public void accept(Event<String> event) {
+                com.xxl.mq.client.producer.XxlMqProducer.produce(new XxlMqMessage(event.getName(),
+                        JSON.toJSONString(event)));
+            }
+
+            @Override
+            public boolean isPublisherCallback() {
+                return false;
+            }
+        };
     }
 
     @PostConstruct
     public void init() {
         List<IMqConsumer> consumers = EventListenerRegistry.allReceiveEvent()
                 .parallelStream()
-                .map(s -> MqConsumerUtil.newClass(s, XxlMqConsumerTemplate.class))
+                .map(s -> MqConsumerUtil.newClass(s, XxlMqConsumer.class))
                 .map(aClass -> {
                     try {
                         return (IMqConsumer) aClass.getConstructor(MsgReceiveMapper.class).newInstance(msgReceiveMapper);

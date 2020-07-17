@@ -1,6 +1,7 @@
 package com.fanxuankai.boot.mqbroker.kafka.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
@@ -43,7 +44,7 @@ public class MqBrokerKafkaAutoConfiguration {
             }
 
             @Override
-            public void accept(Event event) {
+            public void accept(Event<String> event) {
                 kafkaTemplate.send(event.getName(), JSON.toJSONString(event));
             }
         };
@@ -54,8 +55,9 @@ public class MqBrokerKafkaAutoConfiguration {
     public AbstractMqConsumer<String> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
         return new AbstractMqConsumer<String>(msgReceiveMapper) {
             @Override
-            public Event apply(String s) {
-                return JSON.parseObject(s, Event.class);
+            public Event<String> apply(String s) {
+                return JSON.parseObject(s, new TypeReference<Event<String>>() {
+                });
             }
         };
     }

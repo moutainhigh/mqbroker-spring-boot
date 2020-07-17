@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListener;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
-import com.fanxuankai.boot.mqbroker.produce.MqProducer;
-import com.fanxuankai.boot.mqbroker.service.MsgSendService;
-import com.fanxuankai.commons.util.concurrent.ThreadPoolService;
 import com.fanxuankai.boot.mqbroker.consume.Listener;
 import com.fanxuankai.boot.mqbroker.mapper.MsgSendMapper;
+import com.fanxuankai.boot.mqbroker.produce.MqProducer;
+import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.boot.mqbroker.task.TaskConfigurer;
+import com.fanxuankai.commons.util.concurrent.ThreadPoolService;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -54,7 +54,7 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
         applicationContext.getBeansWithAnnotation(Listener.class).values()
                 .forEach(o -> {
                     if (o instanceof EventListener) {
-                        EventListener eventListener = (EventListener) o;
+                        EventListener<?> eventListener = (EventListener<?>) o;
                         EventListenerRegistry.addListener(eventListener.getClass().getAnnotation(Listener.class).event(),
                                 eventListener);
                     }

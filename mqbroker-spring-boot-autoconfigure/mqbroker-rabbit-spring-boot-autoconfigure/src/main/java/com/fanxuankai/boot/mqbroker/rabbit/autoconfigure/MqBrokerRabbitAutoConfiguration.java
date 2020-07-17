@@ -45,7 +45,7 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     public MessageListenerContainer simpleMessageQueueLister(ConnectionFactory connectionFactory,
-                                                             AbstractMqConsumer<Event> mqConsumer,
+                                                             AbstractMqConsumer<Event<?>> mqConsumer,
                                                              AmqpAdmin amqpAdmin,
                                                              MqBrokerProperties mqBrokerProperties) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
@@ -95,7 +95,7 @@ public class MqBrokerRabbitAutoConfiguration {
             }
         });
         rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
-            Event event = JSON.parseObject(new String(message.getBody()), Event.class);
+            Event<?> event = JSON.parseObject(new String(message.getBody()), Event.class);
             String cause = "replyCode: " + replyCode + ", replyText: " + replyText + ", exchange: " + exchange;
             msgSendService.failure(routingKey, event.getKey(), cause);
         });
@@ -111,7 +111,7 @@ public class MqBrokerRabbitAutoConfiguration {
             }
 
             @Override
-            public void accept(Event event) {
+            public void accept(Event<String> event) {
                 if (!queueCache.containsKey(event.getName())) {
                     amqpAdmin.declareQueue(new Queue(event.getName()));
                     queueCache.put(event.getName(), Boolean.TRUE);
@@ -124,8 +124,8 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<Event> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
-        return new AbstractMqConsumer<Event>(msgReceiveMapper) {
+    public AbstractMqConsumer<Event<String>> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
+        return new AbstractMqConsumer<Event<String>>(msgReceiveMapper) {
         };
     }
 }

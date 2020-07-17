@@ -1,5 +1,6 @@
 package com.fanxuankai.boot.mqbroker.consume;
 
+import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
@@ -19,8 +20,8 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
     private MsgReceiveService msgReceiveService;
 
     @Override
-    public void distribute(Event event) {
-        List<EventListener> eventListeners = EventListenerRegistry.getListeners(event.getName());
+    public void distribute(Event<?> event) {
+        List<EventListener<?>> eventListeners = EventListenerRegistry.getListeners(event.getName());
         if (CollectionUtils.isEmpty(eventListeners)) {
             return;
         }
@@ -29,9 +30,12 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void accept(MsgReceive message) {
-        distribute(new Event().setName(message.getTopic()).setKey(message.getCode()).setData(message.getData()));
-        msgReceiveService.consumed(message);
+    @SuppressWarnings("rawtypes unchecked")
+    public void accept(MsgReceive msg) {
+        Class<?> dataType = EventListenerRegistry.getDataType(msg.getTopic());
+        distribute(new Event().setName(msg.getTopic()).setKey(msg.getCode()).setData(JSON.parseObject(msg.getData(),
+                dataType)));
+        msgReceiveService.consumed(msg);
     }
 
     /**
@@ -40,7 +44,7 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
      * @param event          事件
      * @param eventListeners 事件监听器
      */
-    protected abstract void onEvent(Event event, List<EventListener> eventListeners);
+    protected abstract void onEvent(Event<?> event, List<EventListener<?>> eventListeners);
 
     /**
      * 适用的事件监听策略
