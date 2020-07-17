@@ -25,7 +25,7 @@ public class EventListenerRegistry {
         RECEIVE_EVENTS.add(event);
     }
 
-    public static void addListener(String event, EventListener<?> eventListener) {
+    public static <T> void addListener(String event, EventListener<T> eventListener) {
         registerReceiveEvent(event);
         EVENT_LISTENERS.computeIfAbsent(event, s -> new ArrayList<>()).add(eventListener);
         DATA_TYPE.put(event, GenericTypeUtils.getGenericType(eventListener.getClass(), EventListener.class, 0));
