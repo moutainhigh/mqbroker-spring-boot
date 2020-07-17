@@ -121,3 +121,15 @@ eventPublisher.publish(IntStream.range(0, 10)
                         .setData(JMockData.mock(User.class)))
                 .collect(Collectors.toList()));
 ```
+
+## 常见问题
+- 以代码方式注册事件使用 EventListenerRegistry.addListener, 目前不支持匿名类, 栗子:
+``` 
+EventListener<String> eventListener = new EventListener<String>() {
+    @Override
+    public void onEvent(Event<String> event) {
+        canalListenerHelper.accept(s, event.getData());
+    }
+};
+EventListenerRegistry.addListener(s, eventListener);
+```
