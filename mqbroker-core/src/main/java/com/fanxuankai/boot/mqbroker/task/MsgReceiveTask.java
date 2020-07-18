@@ -2,9 +2,9 @@ package com.fanxuankai.boot.mqbroker.task;
 
 import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
 import com.fanxuankai.boot.mqbroker.consume.EventDistributorFactory;
+import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.ThrowableUtils;
-import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
