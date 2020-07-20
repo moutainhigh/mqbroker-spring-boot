@@ -15,6 +15,7 @@
         <module>mqbroker-core</module>
         <module>mqbroker-spring-boot-autoconfigure</module>
         <module>mqbroker-spring-boot-starter</module>
+        <module>mqbroker-spring-boot-test</module>
     </modules>
 
     <dependencyManagement>

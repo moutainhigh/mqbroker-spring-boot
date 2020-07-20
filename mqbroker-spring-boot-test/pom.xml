@@ -11,6 +11,10 @@
     <artifactId>mqbroker-spring-boot-test</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <modules>
         <module>mqbroker-kafka-example</module>
         <module>mqbroker-rabbit-example</module>
