@@ -1,6 +1,5 @@
 package com.fanxuankai.boot.mqbroker.config;
 
-import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListener;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
@@ -40,14 +39,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @EnableTransactionManagement
 @EnableScheduling
 public class MqBrokerAutoConfiguration implements ApplicationContextAware {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public PaginationInterceptor paginationInterceptor(MqBrokerProperties mqBrokerProperties) {
-        PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
-        paginationInterceptor.setLimit(Math.max(mqBrokerProperties.getMsgSize(), 500));
-        return paginationInterceptor;
-    }
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {

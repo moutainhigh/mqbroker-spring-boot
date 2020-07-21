@@ -17,3 +17,6 @@ spring:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 mq-broker:
   msg-size: 10000
+mybatis-plus:
+  pagination-interceptor:
+    limit: -1

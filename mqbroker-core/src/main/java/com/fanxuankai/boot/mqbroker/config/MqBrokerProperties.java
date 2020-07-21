@@ -21,7 +21,7 @@ public class MqBrokerProperties {
      */
     private int maxConcurrent = Runtime.getRuntime().availableProcessors();
     /**
-     * 拉取消息的数量
+     * 拉取消息的数量, 大于 500 时需要设置 mybatis-plus 分页 limit 为-1
      */
     private int msgSize = 1_000;
     /**
