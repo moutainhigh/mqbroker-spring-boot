@@ -73,7 +73,12 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         MsgSend message = new MsgSend();
         message.setTopic(event.getName());
         message.setCode(event.getKey());
-        message.setData(JSON.toJSONString(event.getData()));
+        Object data = event.getData();
+        if (data instanceof CharSequence) {
+            message.setData(data.toString());
+        } else {
+            message.setData(JSON.toJSONString(data));
+        }
         message.setStatus(Status.CREATED.getCode());
         message.setRetry(0);
         Date now = new Date();
