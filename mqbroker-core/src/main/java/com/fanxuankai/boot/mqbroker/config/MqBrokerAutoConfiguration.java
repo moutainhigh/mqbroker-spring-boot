@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -46,8 +47,9 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
                 .forEach(o -> {
                     if (o instanceof EventListener) {
                         EventListener<?> eventListener = (EventListener<?>) o;
-                        EventListenerRegistry.addListener(eventListener.getClass().getAnnotation(Listener.class).event(),
-                                eventListener);
+                        Listener listener = AnnotationUtils.findAnnotation(eventListener.getClass(), Listener.class);
+                        assert listener != null;
+                        EventListenerRegistry.addListener(listener.event(), eventListener);
                     }
                 });
     }
