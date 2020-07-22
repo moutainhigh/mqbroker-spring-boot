@@ -12,10 +12,11 @@ import com.xxl.mq.client.factory.XxlMqClientFactory;
 import com.xxl.mq.client.factory.impl.XxlMqSpringClientFactory;
 import com.xxl.mq.client.message.XxlMqMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
  * @author fanxuankai
  */
 @Slf4j
-public class MqBrokerXxlAutoConfiguration {
+public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     @Resource
     private XxlMqSpringClientFactory xxlMqSpringClientFactory;
     @Resource
@@ -49,8 +50,8 @@ public class MqBrokerXxlAutoConfiguration {
         };
     }
 
-    @PostConstruct
-    public void init() {
+    @Override
+    public void run(ApplicationArguments args) {
         List<IMqConsumer> consumers = EventListenerRegistry.allReceiveEvent()
                 .parallelStream()
                 .map(s -> MqConsumerUtil.newClass(s, XxlMqConsumer.class))
@@ -74,5 +75,4 @@ public class MqBrokerXxlAutoConfiguration {
             log.error("获取 XxlMqClientFactory 异常", e);
         }
     }
-
 }
