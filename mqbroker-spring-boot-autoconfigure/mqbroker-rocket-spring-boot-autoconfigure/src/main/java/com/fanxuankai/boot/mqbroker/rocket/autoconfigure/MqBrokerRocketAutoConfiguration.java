@@ -5,6 +5,7 @@ import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
 import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
+import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +27,8 @@ import org.springframework.context.annotation.Bean;
 public class MqBrokerRocketAutoConfiguration {
 
     @Bean
-    public AbstractMqProducer mqProducer(RocketMQTemplate template) {
-        return new AbstractMqProducer() {
+    public AbstractMqProducer<EmptyEventConfig> mqProducer(RocketMQTemplate template) {
+        return new AbstractMqProducer<EmptyEventConfig>() {
             @Override
             public boolean isPublisherCallback() {
                 return false;
@@ -52,10 +53,10 @@ public class MqBrokerRocketAutoConfiguration {
                     Event.class)));
             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
         });
-        EventListenerRegistry.allReceiveEvent()
+        EventListenerRegistry.getAllListenerMetadata()
                 .forEach(s -> {
                     try {
-                        consumer.subscribe(s, "*");
+                        consumer.subscribe(s.getTopic(), "*");
                     } catch (MQClientException e) {
                         log.error("订阅失败", e);
                     }

@@ -1,6 +1,7 @@
 package com.fanxuankai.boot.mqbroker.consume;
 
 import com.fanxuankai.boot.commons.util.GenericTypeUtils;
+import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -13,29 +14,31 @@ import java.util.*;
 @Slf4j
 public class EventListenerRegistry {
 
-    private static final Set<String> RECEIVE_EVENTS = new HashSet<>();
-    private static final Map<String, List<EventListener<?>>> EVENT_LISTENERS = new HashMap<>();
-    private static final Map<String, Class<?>> DATA_TYPE = new HashMap<>();
+    private static final Set<ListenerMetadata> LISTENER_METADATA_SET = new HashSet<>();
+    private static final Map<ListenerMetadata, List<EventListener<?>>> EVENT_LISTENERS = new HashMap<>();
+    private static final Map<ListenerMetadata, Class<?>> DATA_TYPE = new HashMap<>();
 
-    public static Set<String> allReceiveEvent() {
-        return RECEIVE_EVENTS;
+    public static Set<ListenerMetadata> getAllListenerMetadata() {
+        return LISTENER_METADATA_SET;
     }
 
-    private static void registerReceiveEvent(String event) {
-        RECEIVE_EVENTS.add(event);
+    private static void registerEvent(ListenerMetadata listenerMetadata) {
+        LISTENER_METADATA_SET.add(listenerMetadata);
     }
 
-    public static <T> void addListener(String event, EventListener<T> eventListener) {
-        registerReceiveEvent(event);
-        EVENT_LISTENERS.computeIfAbsent(event, s -> new ArrayList<>()).add(eventListener);
-        DATA_TYPE.put(event, GenericTypeUtils.getGenericType(eventListener.getClass(), EventListener.class, 0));
+    public static <T> void addListener(ListenerMetadata listenerMetadata, EventListener<T> eventListener) {
+        registerEvent(listenerMetadata);
+        EVENT_LISTENERS.computeIfAbsent(listenerMetadata, s -> new ArrayList<>()).add(eventListener);
+        DATA_TYPE.put(listenerMetadata, GenericTypeUtils.getGenericType(eventListener.getClass(), EventListener.class,
+                0));
     }
 
-    public static List<EventListener<?>> getListeners(String event) {
-        return EVENT_LISTENERS.get(event);
+    public static List<EventListener<?>> getListeners(ListenerMetadata listenerMetadata) {
+        return EVENT_LISTENERS.get(listenerMetadata);
     }
 
-    public static Class<?> getDataType(String event) {
-        return DATA_TYPE.get(event);
+    public static Class<?> getDataType(ListenerMetadata listenerMetadata) {
+        return DATA_TYPE.get(listenerMetadata);
     }
+
 }

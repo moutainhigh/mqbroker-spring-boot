@@ -13,6 +13,7 @@ import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,7 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
 
     protected MsgSend createMessageSend(Event<?> event) {
         MsgSend message = new MsgSend();
+        message.setMsgGroup(event.getGroup());
         message.setTopic(event.getName());
         message.setCode(event.getKey());
         Object data = event.getData();
@@ -79,8 +81,11 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         } else {
             message.setData(JSON.toJSONString(data));
         }
-        message.setStatus(Status.CREATED.getCode());
         message.setRetry(0);
+        message.setStatus(Status.CREATED.getCode());
+        Optional.ofNullable(event.getEventConfig())
+                .map(JSON::toJSONString)
+                .ifPresent(message::setMsgConfig);
         Date now = new Date();
         message.setCreateDate(now);
         message.setLastModifiedDate(now);

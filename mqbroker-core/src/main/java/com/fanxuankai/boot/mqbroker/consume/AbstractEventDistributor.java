@@ -3,6 +3,7 @@ package com.fanxuankai.boot.mqbroker.consume;
 import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.fanxuankai.boot.mqbroker.model.Event;
+import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -21,7 +22,9 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
 
     @Override
     public void distribute(Event<?> event) {
-        List<EventListener<?>> eventListeners = EventListenerRegistry.getListeners(event.getName());
+        List<EventListener<?>> eventListeners = EventListenerRegistry.getListeners(new ListenerMetadata()
+                .setGroup(event.getGroup())
+                .setTopic(event.getName()));
         if (CollectionUtils.isEmpty(eventListeners)) {
             return;
         }
@@ -30,11 +33,16 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @SuppressWarnings("rawtypes unchecked")
     public void accept(MsgReceive msg) {
-        Class<?> dataType = EventListenerRegistry.getDataType(msg.getTopic());
-        distribute(new Event().setName(msg.getTopic()).setKey(msg.getCode()).setData(JSON.parseObject(msg.getData(),
-                dataType)));
+        distribute(new Event<>()
+                .setGroup(msg.getMsgGroup())
+                .setName(msg.getTopic())
+                .setKey(msg.getCode())
+                .setData(JSON.parseObject(msg.getData(),
+                        EventListenerRegistry.getDataType(new ListenerMetadata()
+                                .setGroup(msg.getMsgGroup())
+                                .setTopic(msg.getTopic())
+                        ))));
         msgReceiveService.consumed(msg);
     }
 

@@ -19,6 +19,7 @@
 ```
 CREATE TABLE `mq_broker_msg_send` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `msg_group` varchar(255) DEFAULT NULL COMMENT '分组',
   `topic` varchar(255) NOT NULL COMMENT '队列名',
   `code` varchar(255) NOT NULL COMMENT '代码',
   `data` text NOT NULL COMMENT '内容',
@@ -26,6 +27,7 @@ CREATE TABLE `mq_broker_msg_send` (
   `host_address` varchar(255) DEFAULT NULL COMMENT '主机地址',
   `retry` int(11) NOT NULL DEFAULT '0' COMMENT '重试次数',
   `cause` text DEFAULT NULL COMMENT '失败原因',
+  `msg_config` text DEFAULT NULL COMMENT '额外配置',
   `create_date` datetime NOT NULL COMMENT '创建日期',
   `last_modified_date` datetime NOT NULL COMMENT '修改日期',
   PRIMARY KEY (`id`),
@@ -34,6 +36,7 @@ CREATE TABLE `mq_broker_msg_send` (
 
 CREATE TABLE `mq_broker_msg_receive` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `msg_group` varchar(255) DEFAULT NULL COMMENT '分组',
   `topic` varchar(255) NOT NULL COMMENT '队列名',
   `code` varchar(255) NOT NULL COMMENT '代码',
   `data` text NOT NULL COMMENT '内容',

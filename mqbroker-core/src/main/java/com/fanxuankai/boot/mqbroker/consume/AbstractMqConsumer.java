@@ -28,8 +28,9 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
     public void accept(T t) {
         Event<String> event = apply(t);
         MsgReceive message = new MsgReceive();
-        message.setCode(event.getKey());
+        message.setMsgGroup(event.getGroup());
         message.setTopic(event.getName());
+        message.setCode(event.getKey());
         message.setData(event.getData());
         message.setStatus(Status.CREATED.getCode());
         message.setRetry(0);

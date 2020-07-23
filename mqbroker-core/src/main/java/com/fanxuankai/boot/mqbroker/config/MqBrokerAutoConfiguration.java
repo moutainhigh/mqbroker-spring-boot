@@ -5,6 +5,7 @@ import com.fanxuankai.boot.mqbroker.consume.EventListener;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.Listener;
 import com.fanxuankai.boot.mqbroker.mapper.MsgSendMapper;
+import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.boot.mqbroker.task.TaskConfigurer;
@@ -49,7 +50,10 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
                         EventListener<?> eventListener = (EventListener<?>) o;
                         Listener listener = AnnotationUtils.findAnnotation(eventListener.getClass(), Listener.class);
                         assert listener != null;
-                        EventListenerRegistry.addListener(listener.event(), eventListener);
+                        EventListenerRegistry.addListener(new ListenerMetadata()
+                                        .setGroup(listener.group())
+                                        .setTopic(listener.event()),
+                                eventListener);
                     }
                 });
     }

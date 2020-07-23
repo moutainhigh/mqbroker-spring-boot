@@ -6,6 +6,7 @@ import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
 import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
+import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
@@ -50,9 +51,9 @@ public class MqBrokerRabbitAutoConfiguration {
                                                              MqBrokerProperties mqBrokerProperties) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
         // 监听的队列
-        EventListenerRegistry.allReceiveEvent()
+        EventListenerRegistry.getAllListenerMetadata()
                 .stream()
-                .map(o -> new Queue(o, true))
+                .map(o -> new Queue(o.getTopic(), true))
                 .forEach(queue -> {
                     amqpAdmin.declareQueue(queue);
                     container.addQueues(queue);
@@ -78,10 +79,10 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public AbstractMqProducer mqProducer(AmqpAdmin amqpAdmin,
-                                         RabbitTemplate rabbitTemplate,
-                                         RabbitProperties rabbitProperties,
-                                         MsgSendService msgSendService) {
+    public AbstractMqProducer<EmptyEventConfig> mqProducer(AmqpAdmin amqpAdmin,
+                                                           RabbitTemplate rabbitTemplate,
+                                                           RabbitProperties rabbitProperties,
+                                                           MsgSendService msgSendService) {
         String correlationDataRegex = ",";
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
             assert correlationData != null;
@@ -99,7 +100,7 @@ public class MqBrokerRabbitAutoConfiguration {
             String cause = "replyCode: " + replyCode + ", replyText: " + replyText + ", exchange: " + exchange;
             msgSendService.failure(routingKey, event.getKey(), cause);
         });
-        return new AbstractMqProducer() {
+        return new AbstractMqProducer<EmptyEventConfig>() {
             private final Map<String, Object> queueCache = new ConcurrentHashMap<>(16);
 
             @Override

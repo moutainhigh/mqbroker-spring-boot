@@ -11,6 +11,7 @@ import com.fanxuankai.boot.mqbroker.domain.Msg;
 import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
+import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.AddressUtils;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author fanxuankai
@@ -36,14 +38,18 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
 
     @Override
     public List<MsgReceive> pullData() {
-        if (EventListenerRegistry.allReceiveEvent().isEmpty()) {
+        if (EventListenerRegistry.getAllListenerMetadata().isEmpty()) {
             return Collections.emptyList();
         }
         return page(new Page<>(1, mqBrokerProperties.getMsgSize()),
                 new QueryWrapper<MsgReceive>()
                         .lambda()
                         .eq(Msg::getStatus, Status.CREATED.getCode())
-                        .in(Msg::getTopic, EventListenerRegistry.allReceiveEvent())
+                        .in(Msg::getTopic, EventListenerRegistry.getAllListenerMetadata()
+                                .stream()
+                                .map(ListenerMetadata::getTopic)
+                                .collect(Collectors.toList())
+                        )
                         .orderByAsc(MsgReceive::getId)
                         .lt(MsgReceive::getRetry, mqBrokerProperties.getMaxRetry())).getRecords();
     }

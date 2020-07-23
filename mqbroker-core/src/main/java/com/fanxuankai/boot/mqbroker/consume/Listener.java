@@ -12,7 +12,16 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Listener {
     /**
-     * @return event name
+     * 分组
+     *
+     * @return String
+     */
+    String group() default "";
+
+    /**
+     * 事件名
+     *
+     * @return String
      */
     String event();
 }

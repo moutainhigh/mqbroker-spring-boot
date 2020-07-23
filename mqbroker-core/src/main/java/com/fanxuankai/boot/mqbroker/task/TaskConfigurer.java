@@ -39,7 +39,7 @@ public class TaskConfigurer implements SchedulingConfigurer {
         scheduledTaskRegistrar.addTriggerTask(() -> msgSendService.publisherCallbackTimeout(),
                 triggerContext -> new PeriodicTrigger(mqBrokerProperties.getPublisherCallbackTimeout(),
                         TimeUnit.MILLISECONDS).nextExecutionTime(triggerContext));
-        if (!EventListenerRegistry.allReceiveEvent().isEmpty()) {
+        if (!EventListenerRegistry.getAllListenerMetadata().isEmpty()) {
             scheduledTaskRegistrar.addTriggerTask(msgReceiveTask, triggerContext ->
                     new PeriodicTrigger(mqBrokerProperties.getIntervalMillis(), TimeUnit.MILLISECONDS)
                             .nextExecutionTime(triggerContext));

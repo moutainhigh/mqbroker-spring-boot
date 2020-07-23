@@ -11,3 +11,6 @@ xxl:
     admin:
       address: http://localhost:8081/xxl-mq-admin
 #    access-token:
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

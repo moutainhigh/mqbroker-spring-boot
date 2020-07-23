@@ -19,6 +19,10 @@ public class Msg {
     @TableId(type = IdType.AUTO)
     private Long id;
     /**
+     * 分组
+     */
+    private String msgGroup;
+    /**
      * 主题
      */
     private String topic;

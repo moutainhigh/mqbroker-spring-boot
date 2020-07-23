@@ -1,6 +1,7 @@
 package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
 import com.fanxuankai.boot.commons.util.MqConsumerUtil;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
@@ -11,6 +12,7 @@ import com.xxl.mq.client.consumer.IMqConsumer;
 import com.xxl.mq.client.factory.XxlMqClientFactory;
 import com.xxl.mq.client.factory.impl.XxlMqSpringClientFactory;
 import com.xxl.mq.client.message.XxlMqMessage;
+import com.xxl.mq.client.producer.XxlMqProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -19,8 +21,11 @@ import org.springframework.context.annotation.Bean;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -33,14 +38,33 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     @Resource
     private MsgReceiveMapper msgReceiveMapper;
 
+    private final SimplePropertyPreFilter filter;
+
+    public MqBrokerXxlAutoConfiguration() {
+        filter = new SimplePropertyPreFilter();
+        filter.getExcludes().add("eventConfig");
+    }
+
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public AbstractMqProducer mqProducer() {
-        return new AbstractMqProducer() {
+    public AbstractMqProducer<XxlEventConfig> mqProducer() {
+        return new AbstractMqProducer<XxlEventConfig>() {
             @Override
             public void accept(Event<String> event) {
-                com.xxl.mq.client.producer.XxlMqProducer.produce(new XxlMqMessage(event.getName(),
-                        JSON.toJSONString(event)));
+                XxlMqMessage mqMessage = new XxlMqMessage();
+                mqMessage.setTopic(event.getName());
+                mqMessage.setGroup(event.getGroup());
+                Optional.ofNullable(event.getEventConfig())
+                        .map(eventConfig -> (XxlEventConfig) eventConfig)
+                        .ifPresent(eventConfig -> {
+                            Optional.ofNullable(eventConfig.getRetryCount())
+                                    .ifPresent(mqMessage::setRetryCount);
+                            Optional.ofNullable(eventConfig.getEffectTime())
+                                    .map(localDateTime -> Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()))
+                                    .ifPresent(mqMessage::setEffectTime);
+                        });
+                mqMessage.setData(JSON.toJSONString(event, filter));
+                XxlMqProducer.produce(mqMessage);
             }
 
             @Override
@@ -52,9 +76,9 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        List<IMqConsumer> consumers = EventListenerRegistry.allReceiveEvent()
+        List<IMqConsumer> consumers = EventListenerRegistry.getAllListenerMetadata()
                 .parallelStream()
-                .map(s -> MqConsumerUtil.newClass(s, XxlMqConsumer.class))
+                .map(s -> MqConsumerUtil.newClass(s.getGroup(), s.getTopic(), XxlMqConsumer.class))
                 .map(aClass -> {
                     try {
                         return (IMqConsumer) aClass.getConstructor(MsgReceiveMapper.class).newInstance(msgReceiveMapper);
