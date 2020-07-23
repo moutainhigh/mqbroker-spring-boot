@@ -23,7 +23,7 @@ public class ListenerMetadata {
             return false;
         }
         ListenerMetadata that = (ListenerMetadata) o;
-        return group.equals(that.group) &&
+        return Objects.equals(group, that.group) &&
                 topic.equals(that.topic);
     }
 
