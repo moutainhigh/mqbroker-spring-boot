@@ -1,6 +1,9 @@
 package com.fanxuankai.boot.mqbroker.produce;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.fanxuankai.boot.mqbroker.domain.Msg;
 import com.fanxuankai.boot.mqbroker.domain.MsgSend;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.model.Event;
@@ -13,6 +16,7 @@ import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -29,6 +33,11 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     private ThreadPoolExecutor threadPoolExecutor;
 
     protected void persistence(Event<T> event, boolean async) {
+        if (msgSendService.count(Wrappers.lambdaQuery(MsgSend.class)
+                .eq(Msg::getCode, event.getKey())) > 0) {
+            log.info("防重生产: {}", event.getKey());
+            return;
+        }
         MsgSend msgSend = createMessageSend(event);
         if (async) {
             threadPoolExecutor.execute(() -> save(msgSend));
@@ -41,6 +50,20 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     protected void persistence(List<Event<T>> events, boolean async) {
         if (events.size() == 1) {
             persistence(events.get(0), async);
+            return;
+        }
+        Map<String, MsgSend> msgByCode = msgSendService.list(Wrappers.lambdaQuery(MsgSend.class)
+                .in(Msg::getCode, events.stream().map(Event::getKey).collect(Collectors.toSet())))
+                .stream()
+                .collect(Collectors.toMap(Msg::getCode, o -> o));
+        events = events.stream().filter(o -> {
+            boolean exists = msgByCode.containsKey(o.getKey());
+            if (exists) {
+                log.info("防重生产: {}", o.getKey());
+            }
+            return !exists;
+        }).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(events)) {
             return;
         }
         List<MsgSend> msgSends = events.stream()

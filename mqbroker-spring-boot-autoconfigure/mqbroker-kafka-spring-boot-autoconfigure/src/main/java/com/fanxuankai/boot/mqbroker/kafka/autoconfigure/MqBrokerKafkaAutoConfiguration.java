@@ -18,6 +18,8 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
  * @author fanxuankai
  */
@@ -52,8 +54,8 @@ public class MqBrokerKafkaAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<String> mqConsumer() {
-        return new AbstractMqConsumer<String>() {
+    public AbstractMqConsumer<String> mqConsumer(ThreadPoolExecutor threadPoolExecutor) {
+        return new AbstractMqConsumer<String>(threadPoolExecutor) {
             @Override
             public Event<String> apply(String s) {
                 return JSON.parseObject(s, new TypeReference<Event<String>>() {

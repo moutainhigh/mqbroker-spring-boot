@@ -23,8 +23,8 @@ import java.lang.reflect.Field;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     @Resource
     private XxlMqSpringClientFactory xxlMqSpringClientFactory;
+    @Resource
+    private ThreadPoolExecutor threadPoolExecutor;
 
     private final SimplePropertyPreFilter filter;
 
@@ -78,13 +80,11 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
                 .map(s -> MqConsumerUtil.newClass(s.getGroup(), s.getTopic(), XxlMqConsumer.class))
                 .map(aClass -> {
                     try {
-                        return (IMqConsumer) aClass.getConstructor().newInstance();
+                        return (IMqConsumer) aClass.getConstructor(ThreadPoolExecutor.class).newInstance(threadPoolExecutor);
                     } catch (Exception e) {
-                        log.error("消费者实例化失败", e);
+                        throw new RuntimeException("消费者实例化失败", e);
                     }
-                    return null;
                 })
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         try {
             Field field = xxlMqSpringClientFactory.getClass().getDeclaredField("xxlMqClientFactory");

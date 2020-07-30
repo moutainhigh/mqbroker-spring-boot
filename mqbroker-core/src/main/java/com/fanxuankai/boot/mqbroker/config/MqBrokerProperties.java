@@ -31,7 +31,7 @@ public class MqBrokerProperties {
     /**
      * 拉取数据的间隔 ms
      */
-    private long intervalMillis = 60_000;
+    private long intervalMillis = 300_000;
     /**
      * 发布回调超时 ms
      */
