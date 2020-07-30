@@ -57,9 +57,23 @@ public interface MsgSendService extends IService<MsgSend> {
     /**
      * failure
      *
-     * @param msg   消息
-     * @param cause 原因
+     * @param msg 消息
      */
-    void failure(MsgSend msg, String cause);
+    void failure(MsgSend msg);
+
+    /**
+     * 更新重试次数
+     *
+     * @param msg 消息
+     */
+    void updateRetry(MsgSend msg);
+
+    /**
+     * 发送消息
+     *
+     * @param msg   消息
+     * @param retry 是否重试
+     */
+    void produce(MsgSend msg, boolean retry);
 
 }

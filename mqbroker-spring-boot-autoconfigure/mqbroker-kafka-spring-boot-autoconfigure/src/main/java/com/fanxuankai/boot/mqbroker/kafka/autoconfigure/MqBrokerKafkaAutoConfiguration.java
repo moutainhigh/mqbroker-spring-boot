@@ -5,7 +5,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
-import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
 import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
@@ -53,8 +52,8 @@ public class MqBrokerKafkaAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<String> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
-        return new AbstractMqConsumer<String>(msgReceiveMapper) {
+    public AbstractMqConsumer<String> mqConsumer() {
+        return new AbstractMqConsumer<String>() {
             @Override
             public Event<String> apply(String s) {
                 return JSON.parseObject(s, new TypeReference<Event<String>>() {

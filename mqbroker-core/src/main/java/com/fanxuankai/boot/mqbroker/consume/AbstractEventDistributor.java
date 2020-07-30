@@ -43,7 +43,7 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
                                 .setGroup(msg.getMsgGroup())
                                 .setTopic(msg.getTopic())
                         ))));
-        msgReceiveService.consumed(msg);
+        msgReceiveService.success(msg);
     }
 
     /**

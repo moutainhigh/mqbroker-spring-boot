@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
 import com.fanxuankai.boot.commons.util.MqConsumerUtil;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
-import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
@@ -35,8 +34,6 @@ import java.util.stream.Collectors;
 public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     @Resource
     private XxlMqSpringClientFactory xxlMqSpringClientFactory;
-    @Resource
-    private MsgReceiveMapper msgReceiveMapper;
 
     private final SimplePropertyPreFilter filter;
 
@@ -81,9 +78,9 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
                 .map(s -> MqConsumerUtil.newClass(s.getGroup(), s.getTopic(), XxlMqConsumer.class))
                 .map(aClass -> {
                     try {
-                        return (IMqConsumer) aClass.getConstructor(MsgReceiveMapper.class).newInstance(msgReceiveMapper);
-                    } catch (Exception ignored) {
-
+                        return (IMqConsumer) aClass.getConstructor().newInstance();
+                    } catch (Exception e) {
+                        log.error("消费者实例化失败", e);
                     }
                     return null;
                 })

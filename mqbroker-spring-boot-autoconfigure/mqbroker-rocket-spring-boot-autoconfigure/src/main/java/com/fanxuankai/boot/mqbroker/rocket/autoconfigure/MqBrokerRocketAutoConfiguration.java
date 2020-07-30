@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
-import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
 import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
@@ -66,8 +65,8 @@ public class MqBrokerRocketAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<Event<String>> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
-        return new AbstractMqConsumer<Event<String>>(msgReceiveMapper) {
+    public AbstractMqConsumer<Event<String>> mqConsumer() {
+        return new AbstractMqConsumer<Event<String>>() {
         };
     }
 }

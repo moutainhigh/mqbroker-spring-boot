@@ -35,6 +35,45 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         } else {
             save(msgSend);
         }
+        threadPoolExecutor.execute(() -> produce(msgSend));
+    }
+
+    protected void persistence(List<Event<T>> events, boolean async) {
+        if (events.size() == 1) {
+            persistence(events.get(0), async);
+            return;
+        }
+        List<MsgSend> msgSends = events.stream()
+                .map(this::createMessageSend)
+                .collect(Collectors.toList());
+        if (async) {
+            threadPoolExecutor.execute(() -> save(msgSends));
+        } else {
+            save(msgSends);
+        }
+        threadPoolExecutor.execute(() -> msgSends.forEach(this::produce));
+    }
+
+    private MsgSend createMessageSend(Event<?> event) {
+        MsgSend msg = new MsgSend();
+        msg.setMsgGroup(event.getGroup());
+        msg.setTopic(event.getName());
+        msg.setCode(event.getKey());
+        Object data = event.getData();
+        if (data instanceof CharSequence) {
+            msg.setData(data.toString());
+        } else {
+            msg.setData(JSON.toJSONString(data));
+        }
+        msg.setRetry(0);
+        msg.setStatus(Status.RUNNING.getCode());
+        Optional.ofNullable(event.getEventConfig())
+                .map(JSON::toJSONString)
+                .ifPresent(msg::setMsgConfig);
+        Date now = new Date();
+        msg.setCreateDate(now);
+        msg.setLastModifiedDate(now);
+        return msg;
     }
 
     private void save(MsgSend msgSend) {
@@ -55,41 +94,7 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         }
     }
 
-    protected void persistence(List<Event<T>> events, boolean async) {
-        if (events.size() == 1) {
-            persistence(events.get(0), async);
-            return;
-        }
-        List<MsgSend> msgSends = events.stream()
-                .map(this::createMessageSend)
-                .collect(Collectors.toList());
-        if (async) {
-            threadPoolExecutor.execute(() -> save(msgSends));
-        } else {
-            save(msgSends);
-        }
+    private void produce(MsgSend msg) {
+        msgSendService.produce(msg, false);
     }
-
-    protected MsgSend createMessageSend(Event<?> event) {
-        MsgSend message = new MsgSend();
-        message.setMsgGroup(event.getGroup());
-        message.setTopic(event.getName());
-        message.setCode(event.getKey());
-        Object data = event.getData();
-        if (data instanceof CharSequence) {
-            message.setData(data.toString());
-        } else {
-            message.setData(JSON.toJSONString(data));
-        }
-        message.setRetry(0);
-        message.setStatus(Status.CREATED.getCode());
-        Optional.ofNullable(event.getEventConfig())
-                .map(JSON::toJSONString)
-                .ifPresent(message::setMsgConfig);
-        Date now = new Date();
-        message.setCreateDate(now);
-        message.setLastModifiedDate(now);
-        return message;
-    }
-
 }

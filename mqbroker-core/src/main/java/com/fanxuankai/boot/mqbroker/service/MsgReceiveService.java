@@ -35,14 +35,28 @@ public interface MsgReceiveService extends IService<MsgReceive> {
      *
      * @param msg 消息
      */
-    void consumed(MsgReceive msg);
+    void success(MsgReceive msg);
 
     /**
-     * nack
+     * 失败
+     *
+     * @param msg 消息
+     */
+    void failure(MsgReceive msg);
+
+    /**
+     * 更新重试次数
+     *
+     * @param msg 消息
+     */
+    void updateRetry(MsgReceive msg);
+
+    /**
+     * 消费消息
      *
      * @param msg   消息
-     * @param cause 原因
+     * @param retry 是否重试
      */
-    void unconsumed(MsgReceive msg, String cause);
+    void consume(MsgReceive msg, boolean retry);
 
 }

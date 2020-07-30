@@ -3,6 +3,7 @@ package com.fanxuankai.boot.mqbroker.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
@@ -10,8 +11,11 @@ import com.fanxuankai.boot.mqbroker.domain.Msg;
 import com.fanxuankai.boot.mqbroker.domain.MsgSend;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.mapper.MsgSendMapper;
+import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.commons.util.AddressUtils;
+import com.fanxuankai.commons.util.ThrowableUtils;
+import com.fanxuankai.commons.util.concurrent.Threads;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -20,6 +24,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -31,6 +36,8 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
 
     @Resource
     private MqBrokerProperties mqBrokerProperties;
+    @Resource
+    private MqProducer<MsgSend> mqProducer;
 
     @Override
     public List<MsgSend> pullData() {
@@ -38,7 +45,8 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
                 new QueryWrapper<MsgSend>().lambda()
                         .eq(Msg::getStatus, Status.CREATED.getCode())
                         .orderByAsc(Msg::getId)
-                        .lt(Msg::getRetry, mqBrokerProperties.getMaxRetry())).getRecords();
+                        .lt(Msg::getRetry, mqBrokerProperties.getMaxRetry()))
+                .getRecords();
     }
 
     @Override
@@ -62,10 +70,9 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
         entity.setLastModifiedDate(new Date());
         Supplier<LambdaUpdateWrapper<MsgSend>> lambdaSupplier = () -> new UpdateWrapper<MsgSend>()
                 .lambda()
-                .setSql("retry = retry + 1")
                 .eq(Msg::getStatus, Status.RUNNING.getCode())
                 .lt(Msg::getLastModifiedDate, timeout);
-        int lastChance = mqBrokerProperties.getMaxRetry() - 1;
+        int lastChance = mqBrokerProperties.getMaxRetry();
         entity.setStatus(Status.CREATED.getCode());
         update(entity, lambdaSupplier.get().lt(Msg::getRetry, lastChance));
         entity.setStatus(Status.FAILURE.getCode());
@@ -104,28 +111,65 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
         if (msg == null) {
             return;
         }
-        failure(msg, cause);
+        msg.setCause(cause);
+        failure(msg);
     }
 
     @Override
-    public void failure(MsgSend msg, String cause) {
-        String increaseRetry = "retry = retry + 1";
+    public void failure(MsgSend msg) {
         MsgSend entity = new MsgSend();
-        entity.setCause(cause);
+        entity.setRetry(msg.getRetry());
+        entity.setCause(msg.getCause());
         entity.setLastModifiedDate(new Date());
         LambdaUpdateWrapper<MsgSend> lambda = new UpdateWrapper<MsgSend>().lambda()
-                .setSql(increaseRetry)
-                .eq(Msg::getRetry, msg.getRetry())
+                .eq(Msg::getId, msg.getId())
                 .eq(Msg::getStatus, Status.RUNNING.getCode());
-        int lastChance = mqBrokerProperties.getMaxRetry() - 1;
+        int lastChance = mqBrokerProperties.getMaxRetry();
         if (msg.getRetry() < lastChance) {
             entity.setStatus(Status.CREATED.getCode());
-            lambda.lt(Msg::getRetry, lastChance);
         } else {
             entity.setStatus(Status.FAILURE.getCode());
-            lambda.ge(Msg::getRetry, lastChance);
         }
         update(entity, lambda);
+    }
+
+    @Override
+    public void updateRetry(MsgSend msg) {
+        MsgSend entity = new MsgSend();
+        entity.setCause(msg.getCause());
+        entity.setRetry(msg.getRetry());
+        entity.setLastModifiedDate(new Date());
+        update(entity, Wrappers.lambdaUpdate(MsgSend.class).eq(Msg::getId, msg.getId()));
+    }
+
+    @Override
+    public void produce(MsgSend msg, boolean retry) {
+        int i = msg.getRetry();
+        boolean success = false;
+        if (retry) {
+            do {
+                try {
+                    mqProducer.produce(msg);
+                    success = true;
+                } catch (Throwable throwable) {
+                    msg.setCause(ThrowableUtils.getStackTrace(throwable));
+                    Threads.sleep(1, TimeUnit.SECONDS);
+                }
+                i++;
+            } while (!success && i < mqBrokerProperties.getMaxRetry());
+            msg.setRetry(i);
+            updateRetry(msg);
+        } else {
+            try {
+                mqProducer.produce(msg);
+                success = true;
+            } catch (Throwable throwable) {
+                msg.setCause(ThrowableUtils.getStackTrace(throwable));
+            }
+        }
+        if (!success) {
+            failure(msg);
+        }
     }
 
 }

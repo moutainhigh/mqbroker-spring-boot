@@ -1,11 +1,11 @@
 package com.fanxuankai.boot.mqbroker.rabbit.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
-import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
 import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
@@ -46,7 +46,7 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     public MessageListenerContainer simpleMessageQueueLister(ConnectionFactory connectionFactory,
-                                                             AbstractMqConsumer<Event<?>> mqConsumer,
+                                                             AbstractMqConsumer<Event<String>> mqConsumer,
                                                              AmqpAdmin amqpAdmin,
                                                              MqBrokerProperties mqBrokerProperties) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
@@ -65,14 +65,16 @@ public class MqBrokerRabbitAutoConfiguration {
             // 手动确认
             container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
             container.setMessageListener((ChannelAwareMessageListener) (message, channel) -> {
-                mqConsumer.accept(JSON.parseObject(new String(message.getBody()), Event.class));
+                mqConsumer.accept(JSON.parseObject(new String(message.getBody()), new TypeReference<Event<String>>() {
+                }));
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
             });
         } else {
             // 自动确认
             container.setAcknowledgeMode(AcknowledgeMode.AUTO);
             container.setMessageListener(message -> mqConsumer.accept(JSON.parseObject(new String(message.getBody()),
-                    Event.class)));
+                    new TypeReference<Event<String>>() {
+                    })));
         }
         return container;
     }
@@ -125,8 +127,8 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<Event<String>> mqConsumer(MsgReceiveMapper msgReceiveMapper) {
-        return new AbstractMqConsumer<Event<String>>(msgReceiveMapper) {
+    public AbstractMqConsumer<Event<String>> mqConsumer() {
+        return new AbstractMqConsumer<Event<String>>() {
         };
     }
 }

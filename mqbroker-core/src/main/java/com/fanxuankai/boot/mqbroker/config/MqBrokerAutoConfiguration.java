@@ -23,6 +23,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.StringUtils;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -50,8 +51,12 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
                         EventListener<?> eventListener = (EventListener<?>) o;
                         Listener listener = AnnotationUtils.findAnnotation(eventListener.getClass(), Listener.class);
                         assert listener != null;
+                        String group = listener.group();
+                        if (!StringUtils.hasText(group)) {
+                            group = null;
+                        }
                         EventListenerRegistry.addListener(new ListenerMetadata()
-                                        .setGroup(listener.group())
+                                        .setGroup(group)
                                         .setTopic(listener.event()),
                                 eventListener);
                     }
