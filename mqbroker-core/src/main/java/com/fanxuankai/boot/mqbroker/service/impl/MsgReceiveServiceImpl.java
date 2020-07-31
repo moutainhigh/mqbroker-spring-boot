@@ -40,6 +40,8 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
 
     @Resource
     private MqBrokerProperties mqBrokerProperties;
+    @Resource
+    private EventDistributorFactory eventDistributorFactory;
 
     @Override
     public List<MsgReceive> pullData() {
@@ -126,9 +128,6 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
         entity.setLastModifiedDate(new Date());
         update(entity, Wrappers.lambdaUpdate(MsgReceive.class).eq(Msg::getId, msg.getId()));
     }
-
-    @Resource
-    private EventDistributorFactory eventDistributorFactory;
 
     @Override
     public void consume(MsgReceive msg, boolean retry) {

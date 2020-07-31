@@ -19,10 +19,9 @@ import java.util.function.Consumer;
 public abstract class AbstractMqProducer<E extends EventConfig> implements MqProducer<MsgSend>,
         Consumer<Event<String>> {
 
+    private final Class<E> eClass;
     @Resource
     private MsgSendService msgSendService;
-
-    private final Class<E> eClass;
 
     protected AbstractMqProducer() {
         eClass = GenericTypeUtils.getGenericType(getClass(), AbstractMqProducer.class, 0);

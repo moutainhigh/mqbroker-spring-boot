@@ -32,12 +32,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
+    private final SimplePropertyPreFilter filter;
     @Resource
     private XxlMqSpringClientFactory xxlMqSpringClientFactory;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
-
-    private final SimplePropertyPreFilter filter;
 
     public MqBrokerXxlAutoConfiguration() {
         filter = new SimplePropertyPreFilter();

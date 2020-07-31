@@ -81,8 +81,6 @@ spring:
     password: HzB!OPxxE$5CwJIZ
     driver-class-name: com.mysql.cj.jdbc.Driver
 mq-broker:
-  # 最大并发数
-  #max-concurrent:
   # 拉取消息的数量
   #msg-size: 1000
   # 最大重试次数
