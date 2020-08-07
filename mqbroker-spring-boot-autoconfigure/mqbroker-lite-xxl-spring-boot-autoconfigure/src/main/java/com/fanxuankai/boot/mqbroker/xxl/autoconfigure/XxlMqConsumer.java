@@ -14,8 +14,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class XxlMqConsumer extends AbstractMqConsumer<String> implements IMqConsumer {
 
-    public static final String DEFAULT_CONSUMER_NAME = "mqBrokerConsumer";
-
     public XxlMqConsumer(ThreadPoolExecutor threadPoolExecutor) {
         super(threadPoolExecutor);
     }

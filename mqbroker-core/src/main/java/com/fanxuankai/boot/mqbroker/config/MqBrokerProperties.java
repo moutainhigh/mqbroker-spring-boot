@@ -44,4 +44,8 @@ public class MqBrokerProperties {
      * key: 事件名 value: EventStrategy
      */
     private Map<String, EventStrategy> eventStrategy = Collections.emptyMap();
+    /**
+     * 全局消费者名 (仅用于 lite-xxl)
+     */
+    private String globalConsumerName = "default";
 }
