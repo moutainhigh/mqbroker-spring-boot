@@ -1,4 +1,4 @@
-package com.fanxuankai.boot.mqbroker.lite.xxl.autoconfigure;
+package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;

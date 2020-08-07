@@ -1,4 +1,4 @@
-package com.fanxuankai.boot.mqbroker.lite.xxl.autoconfigure;
+package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.fanxuankai.boot.mqbroker.model.EventConfig;
 import lombok.Data;
