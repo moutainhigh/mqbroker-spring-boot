@@ -20,6 +20,7 @@
         <module>mqbroker-rabbit-example</module>
         <module>mqbroker-rocket-example</module>
         <module>mqbroker-xxl-example</module>
+        <module>mqbroker-lite-xxl-example</module>
         <module>mqbroker-example-common</module>
     </modules>
 

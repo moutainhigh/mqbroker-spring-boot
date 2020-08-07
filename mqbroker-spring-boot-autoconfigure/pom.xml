@@ -16,6 +16,7 @@
         <module>mqbroker-xxl-spring-boot-autoconfigure</module>
         <module>mqbroker-rocket-spring-boot-autoconfigure</module>
         <module>mqbroker-kafka-spring-boot-autoconfigure</module>
+        <module>mqbroker-lite-xxl-spring-boot-autoconfigure</module>
     </modules>
 
     <dependencies>
