@@ -13,6 +13,7 @@ import java.util.Objects;
 public class ListenerMetadata {
     private String group;
     private String topic;
+    private String name;
 
     @Override
     public boolean equals(Object o) {

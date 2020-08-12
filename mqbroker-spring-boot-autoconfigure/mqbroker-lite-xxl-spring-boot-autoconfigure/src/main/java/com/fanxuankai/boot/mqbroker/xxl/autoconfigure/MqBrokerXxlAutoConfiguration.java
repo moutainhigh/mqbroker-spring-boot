@@ -18,6 +18,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
@@ -80,8 +81,9 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         List<IMqConsumer> consumers = EventListenerRegistry.getAllListenerMetadata()
                 .parallelStream()
-                .map(s -> MqConsumerHelper.newClass(mqBrokerProperties.getGlobalConsumerName(), s.getGroup(),
-                        s.getTopic(),
+                .map(s -> MqConsumerHelper.newClass(Optional.ofNullable(s.getName())
+                                .filter(StringUtils::hasText)
+                                .orElse("default"), s.getGroup(), s.getTopic(),
                         XxlMqConsumer.class))
                 .map(aClass -> {
                     try {

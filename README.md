@@ -97,8 +97,6 @@ mq-broker:
   #event-strategy:
     # key: 消息队列 value: EventStrategy
     #user: DEFAULT
-  # 全局消费者名 (仅用于 lite-xxl)
-  #global-consumer-name: default
 ```
 - 监听事件
 ```

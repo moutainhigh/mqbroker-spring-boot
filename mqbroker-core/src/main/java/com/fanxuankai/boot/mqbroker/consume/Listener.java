@@ -24,4 +24,11 @@ public @interface Listener {
      * @return String
      */
     String event();
+
+    /**
+     * 消费者名, 仅 lite-xxl-mq 生效
+     *
+     * @return String
+     */
+    String name() default "";
 }
