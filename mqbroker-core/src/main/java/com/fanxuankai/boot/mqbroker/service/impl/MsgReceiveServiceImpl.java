@@ -18,6 +18,7 @@ import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.AddressUtils;
 import com.fanxuankai.commons.util.ThrowableUtils;
 import com.fanxuankai.commons.util.concurrent.Threads;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
  * @author fanxuankai
  */
 @Component
+@Slf4j
 public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgReceive>
         implements MsgReceiveService {
 
@@ -133,28 +135,22 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
     public void consume(MsgReceive msg, boolean retry) {
         int i = msg.getRetry();
         boolean success = false;
-        if (retry) {
-            do {
-                try {
-                    eventDistributorFactory.get(msg).accept(msg);
-                    success = true;
-                } catch (Throwable throwable) {
-                    msg.setCause(ThrowableUtils.getStackTrace(throwable));
-                    Threads.sleep(1, TimeUnit.SECONDS);
-                }
-                i++;
-            } while (!success && i < mqBrokerProperties.getMaxRetry());
-            msg.setRetry(i);
-            updateRetry(msg);
-        } else {
+        do {
             try {
                 eventDistributorFactory.get(msg).accept(msg);
                 success = true;
             } catch (Throwable throwable) {
+                log.error("消息消费失败, id: {}", msg.getId(), throwable);
                 msg.setCause(ThrowableUtils.getStackTrace(throwable));
+                Threads.sleep(1, TimeUnit.SECONDS);
             }
-        }
-        if (!success) {
+        } while (!success && retry && ++i < mqBrokerProperties.getMaxRetry());
+        msg.setRetry(i);
+        if (success) {
+            if (i > msg.getRetry()) {
+                updateRetry(msg);
+            }
+        } else {
             failure(msg);
         }
     }

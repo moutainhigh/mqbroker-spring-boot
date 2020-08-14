@@ -16,6 +16,7 @@ import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.commons.util.AddressUtils;
 import com.fanxuankai.commons.util.ThrowableUtils;
 import com.fanxuankai.commons.util.concurrent.Threads;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -31,6 +32,7 @@ import java.util.function.Supplier;
  * @author fanxuankai
  */
 @Component
+@Slf4j
 public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
         implements MsgSendService {
 
@@ -146,28 +148,22 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
     public void produce(MsgSend msg, boolean retry) {
         int i = msg.getRetry();
         boolean success = false;
-        if (retry) {
-            do {
-                try {
-                    mqProducer.produce(msg);
-                    success = true;
-                } catch (Throwable throwable) {
-                    msg.setCause(ThrowableUtils.getStackTrace(throwable));
-                    Threads.sleep(1, TimeUnit.SECONDS);
-                }
-                i++;
-            } while (!success && i < mqBrokerProperties.getMaxRetry());
-            msg.setRetry(i);
-            updateRetry(msg);
-        } else {
+        do {
             try {
                 mqProducer.produce(msg);
                 success = true;
             } catch (Throwable throwable) {
+                log.error("消息发送失败, id: {}", msg.getId(), throwable);
                 msg.setCause(ThrowableUtils.getStackTrace(throwable));
+                Threads.sleep(1, TimeUnit.SECONDS);
             }
-        }
-        if (!success) {
+        } while (!success && retry && ++i < mqBrokerProperties.getMaxRetry());
+        msg.setRetry(i);
+        if (success) {
+            if (i > msg.getRetry()) {
+                updateRetry(msg);
+            }
+        } else {
             failure(msg);
         }
     }
