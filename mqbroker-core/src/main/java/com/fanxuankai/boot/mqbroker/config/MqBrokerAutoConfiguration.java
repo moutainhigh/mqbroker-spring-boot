@@ -56,11 +56,9 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
                             group = null;
                         }
                         EventListenerRegistry.addListener(new ListenerMetadata()
-                                        .setGroup(group)
-                                        .setTopic(listener.event())
-                                        .setName(listener.name())
-                                ,
-                                eventListener);
+                                .setGroup(group)
+                                .setTopic(listener.event())
+                                .setName(listener.name()), eventListener);
                     }
                 });
     }
