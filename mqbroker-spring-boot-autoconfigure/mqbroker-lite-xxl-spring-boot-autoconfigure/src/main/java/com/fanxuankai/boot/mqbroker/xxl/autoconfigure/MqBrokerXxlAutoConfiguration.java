@@ -2,7 +2,6 @@ package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
-import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
@@ -40,8 +39,6 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     private XxlMqSpringClientFactory xxlMqSpringClientFactory;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
-    @Resource
-    private MqBrokerProperties mqBrokerProperties;
 
     public MqBrokerXxlAutoConfiguration() {
         filter = new SimplePropertyPreFilter();
