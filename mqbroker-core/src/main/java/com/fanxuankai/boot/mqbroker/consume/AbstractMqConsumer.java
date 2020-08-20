@@ -14,6 +14,7 @@ import org.springframework.dao.DuplicateKeyException;
 import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
@@ -37,7 +38,12 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
 
     private ThreadPoolExecutor getThreadPoolExecutor() {
         if (threadPoolExecutor == null) {
-            threadPoolExecutor = ApplicationContexts.getBean("executorService", ThreadPoolExecutor.class);
+            threadPoolExecutor = ApplicationContexts.getApplicationContext().getBeansOfType(ThreadPoolExecutor.class)
+                    .values()
+                    .stream()
+                    .filter(o -> Objects.equals(o.getClass(), ThreadPoolExecutor.class))
+                    .findFirst()
+                    .orElseThrow(NullPointerException::new);
         }
         return threadPoolExecutor;
     }

@@ -60,7 +60,7 @@ public class MqBrokerAutoConfiguration implements BeanFactoryPostProcessor {
 
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnMissingBean
-    public ThreadPoolExecutor executorService() {
+    public ThreadPoolExecutor threadPoolExecutor() {
         return ThreadPoolService.getInstance();
     }
 
