@@ -7,36 +7,26 @@ import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
-import com.xxl.mq.client.consumer.IMqConsumer;
-import com.xxl.mq.client.factory.XxlMqClientFactory;
-import com.xxl.mq.client.factory.impl.XxlMqSpringClientFactory;
 import com.xxl.mq.client.message.XxlMqMessage;
 import com.xxl.mq.client.producer.XxlMqProducer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.lang.NonNull;
 
-import javax.annotation.Resource;
-import java.lang.reflect.Field;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
 
 /**
  * @author fanxuankai
  */
 @Slf4j
-public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
+public class MqBrokerXxlAutoConfiguration implements BeanFactoryPostProcessor {
     private final SimplePropertyPreFilter filter;
-    @Resource
-    private XxlMqSpringClientFactory xxlMqSpringClientFactory;
-    @Resource
-    private ThreadPoolExecutor threadPoolExecutor;
 
     public MqBrokerXxlAutoConfiguration() {
         filter = new SimplePropertyPreFilter();
@@ -73,26 +63,10 @@ public class MqBrokerXxlAutoConfiguration implements ApplicationRunner {
     }
 
     @Override
-    public void run(ApplicationArguments args) {
-        List<IMqConsumer> consumers = EventListenerRegistry.getAllListenerMetadata()
+    public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        EventListenerRegistry.getAllListenerMetadata()
                 .parallelStream()
                 .map(s -> MqConsumerUtil.newClass(s.getGroup(), s.getTopic(), XxlMqConsumer.class))
-                .map(aClass -> {
-                    try {
-                        return (IMqConsumer) aClass.getConstructor(ThreadPoolExecutor.class).newInstance(threadPoolExecutor);
-                    } catch (Exception e) {
-                        throw new RuntimeException("消费者实例化失败", e);
-                    }
-                })
-                .collect(Collectors.toList());
-        try {
-            Field field = xxlMqSpringClientFactory.getClass().getDeclaredField("xxlMqClientFactory");
-            field.setAccessible(true);
-            XxlMqClientFactory clientFactory = (XxlMqClientFactory) field.get(xxlMqSpringClientFactory);
-            clientFactory.setConsumerList(consumers);
-            clientFactory.init();
-        } catch (Exception e) {
-            log.error("获取 XxlMqClientFactory 异常", e);
-        }
+                .forEach(aClass -> beanFactory.registerSingleton(aClass.getName(), beanFactory.createBean(aClass)));
     }
 }

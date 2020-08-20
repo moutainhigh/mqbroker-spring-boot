@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author fanxuankai
@@ -128,8 +127,8 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<Event<String>> mqConsumer(ThreadPoolExecutor threadPoolExecutor) {
-        return new AbstractMqConsumer<Event<String>>(threadPoolExecutor) {
+    public AbstractMqConsumer<Event<String>> mqConsumer() {
+        return new AbstractMqConsumer<Event<String>>() {
         };
     }
 }

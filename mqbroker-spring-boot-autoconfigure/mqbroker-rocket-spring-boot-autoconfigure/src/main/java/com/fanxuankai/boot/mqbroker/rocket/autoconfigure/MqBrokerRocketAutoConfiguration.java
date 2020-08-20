@@ -19,8 +19,6 @@ import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
  * @author fanxuankai
  */
@@ -67,8 +65,8 @@ public class MqBrokerRocketAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqConsumer.class)
-    public AbstractMqConsumer<Event<String>> mqConsumer(ThreadPoolExecutor threadPoolExecutor) {
-        return new AbstractMqConsumer<Event<String>>(threadPoolExecutor) {
+    public AbstractMqConsumer<Event<String>> mqConsumer() {
+        return new AbstractMqConsumer<Event<String>>() {
         };
     }
 }

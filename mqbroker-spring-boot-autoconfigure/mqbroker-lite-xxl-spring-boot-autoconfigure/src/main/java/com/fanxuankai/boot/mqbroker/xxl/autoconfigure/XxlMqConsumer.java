@@ -7,16 +7,10 @@ import com.fanxuankai.boot.mqbroker.model.Event;
 import com.xxl.mq.client.consumer.IMqConsumer;
 import com.xxl.mq.client.consumer.MqResult;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
  * @author fanxuankai
  */
 public class XxlMqConsumer extends AbstractMqConsumer<String> implements IMqConsumer {
-
-    public XxlMqConsumer(ThreadPoolExecutor threadPoolExecutor) {
-        super(threadPoolExecutor);
-    }
 
     @Override
     public Event<String> apply(String s) {

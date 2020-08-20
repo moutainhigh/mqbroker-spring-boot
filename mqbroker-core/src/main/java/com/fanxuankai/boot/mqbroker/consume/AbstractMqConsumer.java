@@ -11,6 +11,7 @@ import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 
+import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -22,18 +23,23 @@ import java.util.function.Function;
 @Slf4j
 public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T, Event<String>> {
 
-    private final ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
     private MsgReceiveService msgReceiveService;
-
-    public AbstractMqConsumer(ThreadPoolExecutor threadPoolExecutor) {
-        this.threadPoolExecutor = threadPoolExecutor;
-    }
 
     private MsgReceiveService getMsgReceiveService() {
         if (msgReceiveService == null) {
             msgReceiveService = ApplicationContexts.getBean(MsgReceiveService.class);
         }
         return msgReceiveService;
+    }
+
+    private ThreadPoolExecutor getThreadPoolExecutor() {
+        if (threadPoolExecutor == null) {
+            threadPoolExecutor = ApplicationContexts.getBean("executorService", ThreadPoolExecutor.class);
+        }
+        return threadPoolExecutor;
     }
 
     @Override
@@ -57,7 +63,7 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         msg.setLastModifiedDate(now);
         try {
             msgReceiveService.save(msg);
-            threadPoolExecutor.execute(() -> msgReceiveService.consume(msg, false));
+            getThreadPoolExecutor().execute(() -> msgReceiveService.consume(msg, false));
         } catch (Throwable throwable) {
             ThrowableUtils.checkException(throwable, DuplicateKeyException.class,
                     SQLIntegrityConstraintViolationException.class);

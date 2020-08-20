@@ -6,6 +6,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 mq-broker:
   msg-size: 10000
+  interval-millis: 5000
 xxl:
   mq:
     admin:
