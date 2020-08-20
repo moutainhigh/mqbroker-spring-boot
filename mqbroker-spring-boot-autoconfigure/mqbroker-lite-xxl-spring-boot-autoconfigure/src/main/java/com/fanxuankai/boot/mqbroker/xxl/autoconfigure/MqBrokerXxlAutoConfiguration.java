@@ -6,7 +6,6 @@ import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
-import com.xxl.mq.client.EnableXxlMqClient;
 import com.xxl.mq.client.message.XxlMqMessage;
 import com.xxl.mq.client.producer.XxlMqProducer;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ import java.util.Optional;
  * @author fanxuankai
  */
 @Slf4j
-@EnableXxlMqClient
 public class MqBrokerXxlAutoConfiguration implements BeanFactoryPostProcessor {
     private final SimplePropertyPreFilter filter;
 
