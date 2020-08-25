@@ -28,6 +28,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -44,6 +45,8 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
     private MqBrokerProperties mqBrokerProperties;
     @Resource
     private EventDistributorFactory eventDistributorFactory;
+    @Resource
+    private ThreadPoolExecutor threadPoolExecutor;
 
     @Override
     public List<MsgReceive> pullData() {
@@ -132,7 +135,15 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
     }
 
     @Override
-    public void consume(MsgReceive msg, boolean retry) {
+    public void consume(MsgReceive msg, boolean retry, boolean async) {
+        if (async) {
+            threadPoolExecutor.execute(() -> consume(msg, retry));
+        } else {
+            consume(msg, retry);
+        }
+    }
+
+    private void consume(MsgReceive msg, boolean retry) {
         int i = msg.getRetry();
         boolean success = false;
         do {

@@ -14,8 +14,6 @@ import org.springframework.dao.DuplicateKeyException;
 import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
-import java.util.Objects;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
 /**
@@ -23,9 +21,6 @@ import java.util.function.Function;
  */
 @Slf4j
 public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T, Event<String>> {
-
-    @Resource
-    private ThreadPoolExecutor threadPoolExecutor;
     @Resource
     private MsgReceiveService msgReceiveService;
 
@@ -34,18 +29,6 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
             msgReceiveService = ApplicationContexts.getBean(MsgReceiveService.class);
         }
         return msgReceiveService;
-    }
-
-    private ThreadPoolExecutor getThreadPoolExecutor() {
-        if (threadPoolExecutor == null) {
-            threadPoolExecutor = ApplicationContexts.getApplicationContext().getBeansOfType(ThreadPoolExecutor.class)
-                    .values()
-                    .stream()
-                    .filter(o -> Objects.equals(o.getClass(), ThreadPoolExecutor.class))
-                    .findFirst()
-                    .orElseThrow(NullPointerException::new);
-        }
-        return threadPoolExecutor;
     }
 
     @Override
@@ -69,7 +52,7 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         msg.setLastModifiedDate(now);
         try {
             msgReceiveService.save(msg);
-            getThreadPoolExecutor().execute(() -> msgReceiveService.consume(msg, false));
+            msgReceiveService.consume(msg, false, true);
         } catch (Throwable throwable) {
             ThrowableUtils.checkException(throwable, DuplicateKeyException.class,
                     SQLIntegrityConstraintViolationException.class);

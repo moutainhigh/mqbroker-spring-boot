@@ -29,7 +29,7 @@ public class MsgReceiveTask implements Runnable {
                 if (!msgReceiveService.lock(msg.getId())) {
                     continue;
                 }
-                msgReceiveService.consume(msg, true);
+                msgReceiveService.consume(msg, true, false);
             }
         }
     }

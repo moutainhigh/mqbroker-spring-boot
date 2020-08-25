@@ -56,7 +56,8 @@ public interface MsgReceiveService extends IService<MsgReceive> {
      *
      * @param msg   消息
      * @param retry 是否重试
+     * @param async 异步
      */
-    void consume(MsgReceive msg, boolean retry);
+    void consume(MsgReceive msg, boolean retry, boolean async);
 
 }
