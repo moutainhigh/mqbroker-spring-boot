@@ -50,7 +50,7 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         msg.setLastModifiedDate(now);
         try {
             msgReceiveService.save(msg);
-            msgReceiveService.consume(msg, false, true);
+            msgReceiveService.consume(msg, true, true);
         } catch (Throwable throwable) {
             ThrowableUtils.checkException(throwable, DuplicateKeyException.class,
                     SQLIntegrityConstraintViolationException.class);

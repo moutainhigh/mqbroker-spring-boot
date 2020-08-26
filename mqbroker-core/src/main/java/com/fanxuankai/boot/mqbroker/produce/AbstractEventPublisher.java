@@ -118,6 +118,6 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     }
 
     private void produce(MsgSend msg) {
-        msgSendService.produce(msg, false);
+        msgSendService.produce(msg, true);
     }
 }

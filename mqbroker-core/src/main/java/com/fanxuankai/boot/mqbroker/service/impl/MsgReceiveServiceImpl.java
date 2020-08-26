@@ -101,6 +101,7 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
         MsgReceive entity = new MsgReceive();
         entity.setLastModifiedDate(new Date());
         entity.setStatus(Status.SUCCESS.getCode());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         update(entity, new UpdateWrapper<MsgReceive>()
                 .lambda()
                 .eq(Msg::getId, msg.getId())
@@ -113,6 +114,7 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
         entity.setRetry(msg.getRetry());
         entity.setCause(msg.getCause());
         entity.setLastModifiedDate(new Date());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         LambdaUpdateWrapper<MsgReceive> lambda = new UpdateWrapper<MsgReceive>().lambda()
                 .eq(Msg::getId, msg.getId())
                 .eq(Msg::getStatus, Status.RUNNING.getCode());
@@ -131,6 +133,7 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
         entity.setCause(msg.getCause());
         entity.setRetry(msg.getRetry());
         entity.setLastModifiedDate(new Date());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         update(entity, Wrappers.lambdaUpdate(MsgReceive.class).eq(Msg::getId, msg.getId()));
     }
 

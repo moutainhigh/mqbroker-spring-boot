@@ -1,31 +1,24 @@
-package com.xxl.mq.client.factory.impl;
+package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.fanxuankai.boot.commons.util.MqConsumerUtil;
-import com.fanxuankai.boot.mqbroker.consume.EventListener;
-import com.fanxuankai.boot.mqbroker.consume.Listener;
-import com.fanxuankai.boot.mqbroker.xxl.autoconfigure.XxlMqConsumer;
+import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.xxl.mq.client.consumer.IMqConsumer;
-import com.xxl.mq.client.consumer.annotation.MqConsumer;
 import com.xxl.mq.client.factory.XxlMqClientFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author xuxueli 2018-11-18 21:18:10
  */
 @Slf4j
-public class XxlMqSpringClientFactory implements ApplicationContextAware, DisposableBean {
+public class MqBrokerXxlMqSpringClientFactory implements ApplicationContextAware, DisposableBean {
 
     // ---------------------- param  ----------------------
 
@@ -42,30 +35,16 @@ public class XxlMqSpringClientFactory implements ApplicationContextAware, Dispos
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
 
         // load consumer from spring
         List<IMqConsumer> consumerList = new ArrayList<>();
 
-        Map<String, Object> serviceMap = applicationContext.getBeansWithAnnotation(MqConsumer.class);
-        if (!CollectionUtils.isEmpty(serviceMap)) {
-            for (Object serviceBean : serviceMap.values()) {
-                if (serviceBean instanceof IMqConsumer) {
-                    consumerList.add((IMqConsumer) serviceBean);
-                }
-            }
-        }
-
-        applicationContext.getBeansOfType(EventListener.class)
-                .values()
-                .forEach(eventListener -> {
-                    Listener listener = AnnotationUtils.findAnnotation(eventListener.getClass(), Listener.class);
-                    assert listener != null;
-                    String group = Optional.of(listener.group())
-                            .filter(StringUtils::hasText)
-                            .orElse(null);
+        EventListenerRegistry.getAllListenerMetadata()
+                .parallelStream()
+                .forEach(s -> {
                     try {
-                        IMqConsumer mqConsumer = (IMqConsumer) MqConsumerUtil.newClass(group, listener.event(),
+                        IMqConsumer mqConsumer = (IMqConsumer) MqConsumerUtil.newClass(s.getGroup(), s.getTopic(),
                                 XxlMqConsumer.class)
                                 .getConstructor()
                                 .newInstance();

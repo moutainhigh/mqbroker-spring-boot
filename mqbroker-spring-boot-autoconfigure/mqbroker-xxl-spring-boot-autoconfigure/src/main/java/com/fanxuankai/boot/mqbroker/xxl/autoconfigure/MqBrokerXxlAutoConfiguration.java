@@ -5,11 +5,14 @@ import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
+import com.fanxuankai.boot.xxl.mq.autoconfigure.XxlMqConfiguration;
 import com.xxl.mq.client.message.XxlMqMessage;
 import com.xxl.mq.client.producer.XxlMqProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import java.time.ZoneId;
 import java.util.Date;
@@ -19,6 +22,8 @@ import java.util.Optional;
  * @author fanxuankai
  */
 @Slf4j
+@Configuration
+@EnableConfigurationProperties({XxlMqConfiguration.class})
 public class MqBrokerXxlAutoConfiguration {
     private final SimplePropertyPreFilter filter;
 
@@ -54,5 +59,14 @@ public class MqBrokerXxlAutoConfiguration {
                 return false;
             }
         };
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MqBrokerXxlMqSpringClientFactory.class)
+    public MqBrokerXxlMqSpringClientFactory mqBrokerXxlMqSpringClientFactory(XxlMqConfiguration xxlMqConfiguration) {
+        MqBrokerXxlMqSpringClientFactory canalXxlMqSpringClientFactory = new MqBrokerXxlMqSpringClientFactory();
+        canalXxlMqSpringClientFactory.setAdminAddress(xxlMqConfiguration.getAdmin().getAddress());
+        canalXxlMqSpringClientFactory.setAccessToken(xxlMqConfiguration.getAccessToken());
+        return canalXxlMqSpringClientFactory;
     }
 }

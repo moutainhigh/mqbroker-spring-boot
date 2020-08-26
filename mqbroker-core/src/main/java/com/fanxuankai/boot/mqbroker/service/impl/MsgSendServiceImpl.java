@@ -85,6 +85,7 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
     public void success(MsgSend msg) {
         MsgSend entity = new MsgSend();
         entity.setLastModifiedDate(new Date());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         entity.setStatus(Status.SUCCESS.getCode());
         update(entity, new UpdateWrapper<MsgSend>()
                 .lambda()
@@ -96,6 +97,7 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
     public void success(String topic, String code) {
         MsgSend entity = new MsgSend();
         entity.setLastModifiedDate(new Date());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         entity.setStatus(Status.SUCCESS.getCode());
         update(entity, new UpdateWrapper<MsgSend>()
                 .lambda()
@@ -123,6 +125,7 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
         entity.setRetry(msg.getRetry());
         entity.setCause(msg.getCause());
         entity.setLastModifiedDate(new Date());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         LambdaUpdateWrapper<MsgSend> lambda = new UpdateWrapper<MsgSend>().lambda()
                 .eq(Msg::getId, msg.getId())
                 .eq(Msg::getStatus, Status.RUNNING.getCode());
@@ -141,6 +144,7 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
         entity.setCause(msg.getCause());
         entity.setRetry(msg.getRetry());
         entity.setLastModifiedDate(new Date());
+        entity.setHostAddress(AddressUtils.getHostAddress());
         update(entity, Wrappers.lambdaUpdate(MsgSend.class).eq(Msg::getId, msg.getId()));
     }
 
