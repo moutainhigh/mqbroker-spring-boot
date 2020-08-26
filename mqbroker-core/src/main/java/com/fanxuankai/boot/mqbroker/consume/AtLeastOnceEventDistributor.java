@@ -24,7 +24,6 @@ public class AtLeastOnceEventDistributor extends AbstractEventDistributor {
                 eventListener.onEvent(event);
                 success = true;
             } catch (Exception e) {
-                log.error("事件处理异常", e);
                 throwable = e;
             }
         }

@@ -23,7 +23,6 @@ public class DefaultEventDistributor extends AbstractEventDistributor {
                 eventListener.onEvent(event);
                 return;
             } catch (Exception e) {
-                log.error("事件处理异常", e);
                 throwable = e;
             }
         }

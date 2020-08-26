@@ -63,7 +63,7 @@ public class MqBrokerLiteXxlMqSpringClientFactory implements ApplicationContextA
                                         .newInstance();
                         consumerList.add(mqConsumer);
                     } catch (Exception e) {
-                        log.error("IMqConsumer 实例化失败", e);
+                        throw new RuntimeException("IMqConsumer 实例化失败", e);
                     }
                 });
 

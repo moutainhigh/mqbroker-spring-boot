@@ -50,7 +50,7 @@ public class MqBrokerXxlMqSpringClientFactory implements ApplicationContextAware
                                 .newInstance();
                         consumerList.add(mqConsumer);
                     } catch (Exception e) {
-                        log.error("IMqConsumer 实例化失败", e);
+                        throw new RuntimeException("IMqConsumer 实例化失败", e);
                     }
                 });
 
