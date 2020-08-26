@@ -11,7 +11,6 @@ import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 
-import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
 import java.util.function.Function;
@@ -21,7 +20,6 @@ import java.util.function.Function;
  */
 @Slf4j
 public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T, Event<String>> {
-    @Resource
     private MsgReceiveService msgReceiveService;
 
     private MsgReceiveService getMsgReceiveService() {

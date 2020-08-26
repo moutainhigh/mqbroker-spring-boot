@@ -2,20 +2,14 @@ package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
-import com.fanxuankai.boot.commons.util.MqConsumerUtil;
-import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.xxl.mq.client.message.XxlMqMessage;
 import com.xxl.mq.client.producer.XxlMqProducer;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.lang.NonNull;
 
 import java.time.ZoneId;
 import java.util.Date;
@@ -25,7 +19,7 @@ import java.util.Optional;
  * @author fanxuankai
  */
 @Slf4j
-public class MqBrokerXxlAutoConfiguration implements BeanFactoryPostProcessor {
+public class MqBrokerXxlAutoConfiguration {
     private final SimplePropertyPreFilter filter;
 
     public MqBrokerXxlAutoConfiguration() {
@@ -60,13 +54,5 @@ public class MqBrokerXxlAutoConfiguration implements BeanFactoryPostProcessor {
                 return false;
             }
         };
-    }
-
-    @Override
-    public void postProcessBeanFactory(@NonNull ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        EventListenerRegistry.getAllListenerMetadata()
-                .parallelStream()
-                .map(s -> MqConsumerUtil.newClass(s.getGroup(), s.getTopic(), XxlMqConsumer.class))
-                .forEach(aClass -> beanFactory.registerSingleton(aClass.getName(), beanFactory.createBean(aClass)));
     }
 }

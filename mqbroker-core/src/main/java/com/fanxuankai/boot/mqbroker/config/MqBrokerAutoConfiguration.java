@@ -12,10 +12,10 @@ import com.fanxuankai.boot.mqbroker.task.TaskConfigurer;
 import com.fanxuankai.commons.util.concurrent.ThreadPoolService;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.StringUtils;
 
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -41,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
         TaskConfigurer.class})
 @EnableTransactionManagement
 @EnableScheduling
-public class MqBrokerAutoConfiguration implements BeanFactoryPostProcessor {
+public class MqBrokerAutoConfiguration implements ApplicationContextAware {
 
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnMissingBean
@@ -66,16 +67,15 @@ public class MqBrokerAutoConfiguration implements BeanFactoryPostProcessor {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        beanFactory.getBeansOfType(EventListener.class)
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        applicationContext.getBeansOfType(EventListener.class)
                 .values()
                 .forEach(eventListener -> {
                     Listener listener = AnnotationUtils.findAnnotation(eventListener.getClass(), Listener.class);
                     assert listener != null;
-                    String group = listener.group();
-                    if (!StringUtils.hasText(group)) {
-                        group = null;
-                    }
+                    String group = Optional.of(listener.group())
+                            .filter(StringUtils::hasText)
+                            .orElse(null);
                     EventListenerRegistry.addListener(new ListenerMetadata()
                             .setGroup(group)
                             .setTopic(listener.event())
