@@ -11,8 +11,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author xuxueli 2018-11-18 21:18:10
@@ -38,21 +38,19 @@ public class MqBrokerXxlMqSpringClientFactory implements ApplicationContextAware
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
 
         // load consumer from spring
-        List<IMqConsumer> consumerList = new ArrayList<>();
-
-        EventListenerRegistry.getAllListenerMetadata()
+        List<IMqConsumer> consumerList = EventListenerRegistry.getAllListenerMetadata()
                 .parallelStream()
-                .forEach(s -> {
+                .map(s -> {
                     try {
-                        IMqConsumer mqConsumer = (IMqConsumer) MqConsumerUtil.newClass(s.getGroup(), s.getTopic(),
+                        return (IMqConsumer) MqConsumerUtil.newClass(s.getGroup(), s.getTopic(),
                                 XxlMqConsumer.class)
                                 .getConstructor()
                                 .newInstance();
-                        consumerList.add(mqConsumer);
                     } catch (Exception e) {
                         throw new RuntimeException("IMqConsumer 实例化失败", e);
                     }
-                });
+                })
+                .collect(Collectors.toList());
 
         // init
         xxlMqClientFactory = new XxlMqClientFactory();
