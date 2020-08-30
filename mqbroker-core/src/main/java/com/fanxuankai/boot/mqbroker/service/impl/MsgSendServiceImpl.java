@@ -12,6 +12,7 @@ import com.fanxuankai.boot.mqbroker.domain.MsgSend;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.mapper.MsgSendMapper;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
+import com.fanxuankai.boot.mqbroker.service.DingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.commons.util.AddressUtils;
 import com.fanxuankai.commons.util.ThrowableUtils;
@@ -40,6 +41,8 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
     private MqBrokerProperties mqBrokerProperties;
     @Resource
     private MqProducer<MsgSend> mqProducer;
+    @Resource
+    private DingTalkClientHelper dingTalkClientHelper;
 
     @Override
     public List<MsgSend> pullData() {
@@ -125,7 +128,8 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
         entity.setRetry(msg.getRetry());
         entity.setCause(msg.getCause());
         entity.setLastModifiedDate(new Date());
-        entity.setHostAddress(AddressUtils.getHostAddress());
+        String hostAddress = AddressUtils.getHostAddress();
+        entity.setHostAddress(hostAddress);
         LambdaUpdateWrapper<MsgSend> lambda = new UpdateWrapper<MsgSend>().lambda()
                 .eq(Msg::getId, msg.getId())
                 .eq(Msg::getStatus, Status.RUNNING.getCode());
@@ -136,6 +140,7 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
             entity.setStatus(Status.FAILURE.getCode());
         }
         update(entity, lambda);
+        dingTalkClientHelper.push("消息发送失败", msg.getTopic(), msg.getCode(), msg.getRetry(), hostAddress);
     }
 
     @Override

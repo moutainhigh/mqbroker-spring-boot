@@ -19,3 +19,9 @@ mybatis-plus:
     limit: -1
 mq-broker:
   msg-size: 10000
+  ding-talk:
+    url: https://oapi.dingtalk.com/robot/send
+    access-token:
+    secret:
+    env: dev
+    enabled: true

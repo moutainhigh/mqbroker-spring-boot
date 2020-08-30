@@ -97,6 +97,13 @@ mq-broker:
   #event-strategy:
     # key: 消息队列 value: EventStrategy
     #user: DEFAULT
+  # 钉钉推送配置(发送、消费失败)
+  #ding-talk:
+    #enabled:
+    #url:
+    #accessToken:
+    #secret:
+    #env:
 ```
 - 监听事件
 ```

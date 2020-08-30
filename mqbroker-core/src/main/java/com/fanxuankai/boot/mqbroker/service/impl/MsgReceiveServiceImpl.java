@@ -14,6 +14,7 @@ import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.mapper.MsgReceiveMapper;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
+import com.fanxuankai.boot.mqbroker.service.DingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.AddressUtils;
 import com.fanxuankai.commons.util.ThrowableUtils;
@@ -47,6 +48,8 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
     private EventDistributorFactory eventDistributorFactory;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private DingTalkClientHelper dingTalkClientHelper;
 
     @Override
     public List<MsgReceive> pullData() {
@@ -114,17 +117,17 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
         entity.setRetry(msg.getRetry());
         entity.setCause(msg.getCause());
         entity.setLastModifiedDate(new Date());
-        entity.setHostAddress(AddressUtils.getHostAddress());
-        LambdaUpdateWrapper<MsgReceive> lambda = new UpdateWrapper<MsgReceive>().lambda()
-                .eq(Msg::getId, msg.getId())
-                .eq(Msg::getStatus, Status.RUNNING.getCode());
-        int lastChance = mqBrokerProperties.getMaxRetry();
-        if (msg.getRetry() < lastChance) {
+        String hostAddress = AddressUtils.getHostAddress();
+        entity.setHostAddress(hostAddress);
+        if (msg.getRetry() < mqBrokerProperties.getMaxRetry()) {
             entity.setStatus(Status.CREATED.getCode());
         } else {
             entity.setStatus(Status.FAILURE.getCode());
         }
-        update(entity, lambda);
+        update(entity, new UpdateWrapper<MsgReceive>().lambda()
+                .eq(Msg::getId, msg.getId())
+                .eq(Msg::getStatus, Status.RUNNING.getCode()));
+        dingTalkClientHelper.push("消息消费失败", msg.getTopic(), msg.getCode(), msg.getRetry(), hostAddress);
     }
 
     @Override
