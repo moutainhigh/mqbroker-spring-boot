@@ -5,8 +5,6 @@ import com.dingtalk.api.request.OapiRobotSendRequest;
 import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
 import com.taobao.api.ApiException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Objects;
@@ -14,16 +12,14 @@ import java.util.Objects;
 /**
  * @author fanxuankai
  */
-@Service
 @Slf4j
 public class DingTalkClientHelper {
 
     @Resource
     private MqBrokerProperties mqBrokerProperties;
-
     private final DingTalkClient dingTalkClient;
 
-    public DingTalkClientHelper(@Autowired(required = false) DingTalkClient dingTalkClient) {
+    public DingTalkClientHelper(DingTalkClient dingTalkClient) {
         this.dingTalkClient = dingTalkClient;
     }
 
