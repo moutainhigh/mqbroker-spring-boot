@@ -1,31 +1,37 @@
 package com.fanxuankai.boot.mqbroker.service;
 
+import com.dingtalk.api.DefaultDingTalkClient;
 import com.dingtalk.api.DingTalkClient;
 import com.dingtalk.api.request.OapiRobotSendRequest;
 import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
 import com.taobao.api.ApiException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 /**
  * @author fanxuankai
  */
+@Service
 @Slf4j
 public class MqBrokerDingTalkClientHelper {
 
     @Resource
     private MqBrokerProperties mqBrokerProperties;
-    private final DingTalkClient dingTalkClient;
-
-    public MqBrokerDingTalkClientHelper(DingTalkClient dingTalkClient) {
-        this.dingTalkClient = dingTalkClient;
-    }
 
     public void push(String title, String topic, String code, int retry, String ip) {
-        if (dingTalkClient == null ||
-                !Objects.equals(mqBrokerProperties.getDingTalk().getEnabled(), Boolean.TRUE)) {
+        if (!Objects.equals(mqBrokerProperties.getDingTalk().getEnabled(), Boolean.TRUE)) {
             return;
         }
         OapiRobotSendRequest request = new OapiRobotSendRequest();
@@ -41,10 +47,32 @@ public class MqBrokerDingTalkClientHelper {
         );
         request.setMarkdown(markdown);
         try {
-            dingTalkClient.execute(request);
+            newDingTalkClient().execute(request);
         } catch (ApiException e) {
             log.error("钉钉推送异常", e);
         }
+    }
+
+    public DingTalkClient newDingTalkClient() {
+        MqBrokerProperties.DingTalk dingTalk = mqBrokerProperties.getDingTalk();
+        String serviceUrl = dingTalk.getUrl();
+        serviceUrl += "?access_token=" + dingTalk.getAccessToken();
+        if (StringUtils.hasText(dingTalk.getSecret())) {
+            try {
+                Long timestamp = System.currentTimeMillis();
+                String secret = dingTalk.getSecret();
+                String stringToSign = timestamp + "\n" + secret;
+                Mac mac = Mac.getInstance("HmacSHA256");
+                mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+                byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
+                String sign = URLEncoder.encode(new String(Base64.encodeBase64(signData)), "UTF-8");
+                serviceUrl += "&timestamp=" + timestamp;
+                serviceUrl += "&sign=" + sign;
+            } catch (NoSuchAlgorithmException | UnsupportedEncodingException | InvalidKeyException e) {
+                log.error("钉钉客户端初始化异常", e);
+            }
+        }
+        return new DefaultDingTalkClient(serviceUrl);
     }
 
 }

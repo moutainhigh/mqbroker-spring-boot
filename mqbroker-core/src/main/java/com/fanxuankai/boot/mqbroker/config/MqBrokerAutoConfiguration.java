@@ -1,6 +1,5 @@
 package com.fanxuankai.boot.mqbroker.config;
 
-import com.dingtalk.api.DefaultDingTalkClient;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListener;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
@@ -8,15 +7,12 @@ import com.fanxuankai.boot.mqbroker.consume.Listener;
 import com.fanxuankai.boot.mqbroker.mapper.MsgSendMapper;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
-import com.fanxuankai.boot.mqbroker.service.MqBrokerDingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.boot.mqbroker.task.TaskConfigurer;
 import com.fanxuankai.commons.util.concurrent.ThreadPoolService;
-import org.apache.commons.codec.binary.Base64;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -29,13 +25,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.StringUtils;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -92,27 +81,5 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
                             .setTopic(listener.event())
                             .setName(listener.name()), eventListener);
                 });
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(MqBrokerDingTalkClientHelper.class)
-    @ConditionalOnProperty(prefix = MqBrokerProperties.DING_TALK_PREFIX, value = "enabled", havingValue = "true")
-    public MqBrokerDingTalkClientHelper mqBrokerDingTalkClientHelper(MqBrokerProperties mqBrokerProperties) throws NoSuchAlgorithmException,
-            InvalidKeyException, UnsupportedEncodingException {
-        MqBrokerProperties.DingTalk dingTalk = mqBrokerProperties.getDingTalk();
-        String serviceUrl = dingTalk.getUrl();
-        serviceUrl += "?access_token=" + dingTalk.getAccessToken();
-        if (StringUtils.hasText(dingTalk.getSecret())) {
-            Long timestamp = System.currentTimeMillis();
-            String secret = dingTalk.getSecret();
-            String stringToSign = timestamp + "\n" + secret;
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
-            String sign = URLEncoder.encode(new String(Base64.encodeBase64(signData)), "UTF-8");
-            serviceUrl += "&timestamp=" + timestamp;
-            serviceUrl += "&sign=" + sign;
-        }
-        return new MqBrokerDingTalkClientHelper(new DefaultDingTalkClient(serviceUrl));
     }
 }
