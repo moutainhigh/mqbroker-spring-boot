@@ -13,13 +13,13 @@ import java.util.Objects;
  * @author fanxuankai
  */
 @Slf4j
-public class DingTalkClientHelper {
+public class MqBrokerDingTalkClientHelper {
 
     @Resource
     private MqBrokerProperties mqBrokerProperties;
     private final DingTalkClient dingTalkClient;
 
-    public DingTalkClientHelper(DingTalkClient dingTalkClient) {
+    public MqBrokerDingTalkClientHelper(DingTalkClient dingTalkClient) {
         this.dingTalkClient = dingTalkClient;
     }
 

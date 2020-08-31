@@ -8,7 +8,7 @@ import com.fanxuankai.boot.mqbroker.consume.Listener;
 import com.fanxuankai.boot.mqbroker.mapper.MsgSendMapper;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
-import com.fanxuankai.boot.mqbroker.service.DingTalkClientHelper;
+import com.fanxuankai.boot.mqbroker.service.MqBrokerDingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.boot.mqbroker.task.TaskConfigurer;
 import com.fanxuankai.commons.util.concurrent.ThreadPoolService;
@@ -95,9 +95,9 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
     }
 
     @Bean
-    @ConditionalOnMissingBean(DingTalkClientHelper.class)
+    @ConditionalOnMissingBean(MqBrokerDingTalkClientHelper.class)
     @ConditionalOnProperty(prefix = MqBrokerProperties.DING_TALK_PREFIX, value = "enabled", havingValue = "true")
-    public DingTalkClientHelper dingTalkClient(MqBrokerProperties mqBrokerProperties) throws NoSuchAlgorithmException,
+    public MqBrokerDingTalkClientHelper mqBrokerDingTalkClientHelper(MqBrokerProperties mqBrokerProperties) throws NoSuchAlgorithmException,
             InvalidKeyException, UnsupportedEncodingException {
         MqBrokerProperties.DingTalk dingTalk = mqBrokerProperties.getDingTalk();
         String serviceUrl = dingTalk.getUrl();
@@ -113,6 +113,6 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
             serviceUrl += "&timestamp=" + timestamp;
             serviceUrl += "&sign=" + sign;
         }
-        return new DingTalkClientHelper(new DefaultDingTalkClient(serviceUrl));
+        return new MqBrokerDingTalkClientHelper(new DefaultDingTalkClient(serviceUrl));
     }
 }
