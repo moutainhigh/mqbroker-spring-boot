@@ -29,7 +29,7 @@ public class MqBrokerKafkaAutoConfiguration {
             , AbstractMqConsumer<String> mqConsumer) {
         String[] topics = EventListenerRegistry.getAllListenerMetadata().toArray(new String[0]);
         ContainerProperties properties = new ContainerProperties(topics);
-        properties.setGroupId("mq-broker-group");
+        properties.setGroupId("mqbroker-group");
         properties.setMessageListener((MessageListener<String, String>) data -> mqConsumer.accept(data.value()));
         return new KafkaMessageListenerContainer<>(consumerFactory, properties);
     }

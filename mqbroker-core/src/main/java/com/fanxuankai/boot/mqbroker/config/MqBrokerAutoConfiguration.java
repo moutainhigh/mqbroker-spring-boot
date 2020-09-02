@@ -53,7 +53,7 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
             @Override
             public Thread newThread(@NonNull Runnable r) {
                 Thread thread = new Thread(r);
-                thread.setName("broker-scheduler-" + count.getAndIncrement());
+                thread.setName("mqbroker-scheduler-" + count.getAndIncrement());
                 return thread;
             }
         });
