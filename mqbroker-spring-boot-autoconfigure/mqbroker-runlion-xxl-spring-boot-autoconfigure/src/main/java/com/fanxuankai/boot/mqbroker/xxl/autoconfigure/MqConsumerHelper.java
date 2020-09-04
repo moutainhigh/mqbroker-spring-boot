@@ -1,7 +1,11 @@
 package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
+import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
+import com.xxl.mq.client.consumer.IMqConsumer;
+import com.xxl.mq.client.consumer.MqConsumerRegistry;
 import com.xxl.mq.client.consumer.annotation.MqConsumer;
+import com.xxl.mq.client.consumer.thread.ConsumerThread;
 import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -13,6 +17,8 @@ import javassist.bytecode.annotation.IntegerMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 import org.springframework.util.StringUtils;
 
+import java.util.Optional;
+
 /**
  * @author fanxuankai
  */
@@ -22,14 +28,13 @@ public class MqConsumerHelper {
      * 动态生成 class, 并且加上 @MqConsumer 注解
      *
      * @param listenerMetadata the listener metadata
-     * @param template         the mq consumer template class
      * @return new class
      */
-    public static Class<?> newClass(ListenerMetadata listenerMetadata, Class<?> template) {
+    private static Class<?> newClass(ListenerMetadata listenerMetadata) {
         try {
             ClassPool pool = ClassPool.getDefault();
-            String templateClassname = template.getName();
-            pool.insertClassPath(new ClassClassPath(template));
+            String templateClassname = XxlMqConsumer.class.getName();
+            pool.insertClassPath(new ClassClassPath(XxlMqConsumer.class));
             String topic = listenerMetadata.getTopic();
             CtClass clazz = pool.makeClass(templateClassname + "@" + topic,
                     pool.getCtClass(templateClassname));
@@ -44,9 +49,9 @@ public class MqConsumerHelper {
             }
             classAnnotation.addMemberValue("topic", new StringMemberValue(topic, constPool));
             classAnnotation.addMemberValue("waitRateSeconds", new IntegerMemberValue(constPool,
-                    listenerMetadata.getWaitRateSeconds()));
+                    Optional.of(listenerMetadata.getWaitRateSeconds()).orElse(ConsumerThread.DEFAULT_WAIT_RATE_SECONDS)));
             classAnnotation.addMemberValue("waitMaxSeconds", new IntegerMemberValue(constPool,
-                    listenerMetadata.getWaitMaxSeconds()));
+                    Optional.of(listenerMetadata.getWaitMaxSeconds()).orElse(ConsumerThread.DEFAULT_WAIT_MAX_SECONDS)));
             AnnotationsAttribute classAttribute = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
             classAttribute.addAnnotation(classAnnotation);
             clazz.getClassFile().addAttribute(classAttribute);
@@ -54,5 +59,23 @@ public class MqConsumerHelper {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 注册消费者
+     */
+    public static void registerMqConsumer() {
+        EventListenerRegistry.getAllListenerMetadata()
+                .parallelStream()
+                .map(listenerMetadata -> {
+                    try {
+                        return (IMqConsumer) MqConsumerHelper.newClass(listenerMetadata)
+                                .getConstructor()
+                                .newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException("IMqConsumer 实例化失败", e);
+                    }
+                })
+                .forEach(MqConsumerRegistry::registerMqConsumer);
     }
 }
