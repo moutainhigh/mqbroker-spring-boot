@@ -15,6 +15,7 @@
         <module>mqbroker-rabbit-spring-boot-starter</module>
         <module>mqbroker-xxl-spring-boot-starter</module>
         <module>mqbroker-lite-xxl-spring-boot-starter</module>
+        <module>mqbroker-runlion-xxl-spring-boot-starter</module>
         <module>mqbroker-rocket-spring-boot-starter</module>
         <module>mqbroker-kafka-spring-boot-starter</module>
     </modules>

@@ -31,4 +31,18 @@ public @interface Listener {
      * @return String
      */
     String name() default "";
+
+    /**
+     * 线程等待递增时长 s
+     *
+     * @return int
+     */
+    int waitRateSeconds() default 10;
+
+    /**
+     * 线程等待最大时长 s
+     *
+     * @return int
+     */
+    int waitMaxSeconds() default 60;
 }

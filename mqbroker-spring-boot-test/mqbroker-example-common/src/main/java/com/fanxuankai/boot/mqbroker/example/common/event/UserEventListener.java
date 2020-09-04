@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@Listener(event = "user", name = "mqBrokerConsumer")
+@Listener(event = "user", name = "mqBrokerConsumer", waitRateSeconds = 1, waitMaxSeconds = 10)
 public class UserEventListener implements EventListener<User> {
 
     @Override

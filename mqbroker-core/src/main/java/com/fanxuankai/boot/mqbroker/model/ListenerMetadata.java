@@ -14,6 +14,8 @@ public class ListenerMetadata {
     private String group;
     private String topic;
     private String name;
+    private Integer waitRateSeconds;
+    private Integer waitMaxSeconds;
 
     @Override
     public boolean equals(Object o) {

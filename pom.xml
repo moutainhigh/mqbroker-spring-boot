@@ -50,6 +50,11 @@
                 <artifactId>alibaba-dingtalk-service-sdk</artifactId>
                 <version>1.0.1</version>
             </dependency>
+            <dependency>
+                <groupId>com.runlion</groupId>
+                <artifactId>xxl-mq-client</artifactId>
+                <version>1.3.0-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
