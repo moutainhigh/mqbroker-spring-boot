@@ -44,7 +44,6 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         } else {
             save(msgSend);
         }
-        threadPoolExecutor.execute(() -> produce(msgSend));
     }
 
     protected void persistence(List<Event<T>> events, boolean async) {
@@ -74,7 +73,6 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         } else {
             save(msgSends);
         }
-        threadPoolExecutor.execute(() -> msgSends.forEach(this::produce));
     }
 
     private MsgSend createMessageSend(Event<?> event) {
@@ -101,7 +99,9 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
 
     private void save(MsgSend msgSend) {
         try {
-            msgSendService.save(msgSend);
+            if (msgSendService.save(msgSend)) {
+                produce(msgSend);
+            }
         } catch (Throwable throwable) {
             ThrowableUtils.checkException(throwable, DuplicateKeyException.class,
                     SQLIntegrityConstraintViolationException.class);
@@ -110,7 +110,9 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
 
     private void save(List<MsgSend> msgSends) {
         try {
-            msgSendService.saveBatch(msgSends);
+            if (msgSendService.saveBatch(msgSends)) {
+                msgSends.forEach(this::produce);
+            }
         } catch (Throwable throwable) {
             ThrowableUtils.checkException(throwable, DuplicateKeyException.class,
                     SQLIntegrityConstraintViolationException.class);
