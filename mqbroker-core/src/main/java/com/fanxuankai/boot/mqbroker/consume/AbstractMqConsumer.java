@@ -10,6 +10,7 @@ import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.util.StringUtils;
 
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
@@ -29,12 +30,19 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         return msgReceiveService;
     }
 
+    private boolean exists(Event<String> event) {
+        return msgReceiveService.count(Wrappers.lambdaQuery(MsgReceive.class)
+                .eq(StringUtils.hasText(event.getGroup()), Msg::getMsgGroup, event.getGroup())
+                .isNull(!StringUtils.hasText(event.getGroup()), Msg::getMsgGroup)
+                .eq(Msg::getTopic, event.getName())
+                .eq(Msg::getCode, event.getKey())) > 0;
+    }
+
     @Override
     public void accept(T t) {
         Event<String> event = apply(t);
         MsgReceiveService msgReceiveService = getMsgReceiveService();
-        if (msgReceiveService.count(Wrappers.lambdaQuery(MsgReceive.class)
-                .eq(Msg::getCode, event.getKey())) > 0) {
+        if (exists(event)) {
             log.info("防重消费: {}", event.getKey());
             return;
         }

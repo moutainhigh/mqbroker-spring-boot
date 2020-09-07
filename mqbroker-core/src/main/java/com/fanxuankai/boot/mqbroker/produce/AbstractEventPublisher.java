@@ -11,12 +11,12 @@ import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -32,9 +32,16 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
 
+    private boolean exists(Event<T> event) {
+        return msgSendService.count(Wrappers.lambdaQuery(MsgSend.class)
+                .eq(StringUtils.hasText(event.getGroup()), Msg::getMsgGroup, event.getGroup())
+                .isNull(!StringUtils.hasText(event.getGroup()), Msg::getMsgGroup)
+                .eq(Msg::getTopic, event.getName())
+                .eq(Msg::getCode, event.getKey())) > 0;
+    }
+
     protected void persistence(Event<T> event, boolean async) {
-        if (msgSendService.count(Wrappers.lambdaQuery(MsgSend.class)
-                .eq(Msg::getCode, event.getKey())) > 0) {
+        if (exists(event)) {
             log.info("防重生产: {}", event.getKey());
             return;
         }
@@ -51,17 +58,15 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
             persistence(events.get(0), async);
             return;
         }
-        Map<String, MsgSend> msgByCode = msgSendService.list(Wrappers.lambdaQuery(MsgSend.class)
-                .in(Msg::getCode, events.stream().map(Event::getKey).collect(Collectors.toSet())))
-                .stream()
-                .collect(Collectors.toMap(Msg::getCode, o -> o));
-        events = events.stream().filter(o -> {
-            boolean exists = msgByCode.containsKey(o.getKey());
-            if (exists) {
-                log.info("防重生产: {}", o.getKey());
-            }
-            return !exists;
-        }).collect(Collectors.toList());
+        events = events.stream()
+                .filter(event -> {
+                    if (exists(event)) {
+                        log.info("防重生产: {}", event.getKey());
+                        return false;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(events)) {
             return;
         }
