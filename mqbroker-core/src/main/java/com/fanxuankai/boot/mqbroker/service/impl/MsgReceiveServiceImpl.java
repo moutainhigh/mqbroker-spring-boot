@@ -17,7 +17,6 @@ import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.service.MqBrokerDingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.AddressUtils;
-import com.fanxuankai.commons.util.ThrowableUtils;
 import com.fanxuankai.commons.util.concurrent.Threads;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -158,7 +157,7 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
                 success = true;
             } catch (Throwable throwable) {
                 log.error("消息消费失败, id: {}", msg.getId(), throwable);
-                msg.setCause(ThrowableUtils.getStackTrace(throwable));
+                msg.setCause(throwable.getLocalizedMessage());
                 Threads.sleep(1, TimeUnit.SECONDS);
             }
         } while (!success && retry && ++i < mqBrokerProperties.getMaxRetry());

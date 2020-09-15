@@ -15,7 +15,6 @@ import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.fanxuankai.boot.mqbroker.service.MqBrokerDingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.commons.util.AddressUtils;
-import com.fanxuankai.commons.util.ThrowableUtils;
 import com.fanxuankai.commons.util.concurrent.Threads;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -163,7 +162,7 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
                 success = true;
             } catch (Throwable throwable) {
                 log.error("消息发送失败, id: {}", msg.getId(), throwable);
-                msg.setCause(ThrowableUtils.getStackTrace(throwable));
+                msg.setCause(throwable.getLocalizedMessage());
                 Threads.sleep(1, TimeUnit.SECONDS);
             }
         } while (!success && retry && ++i < mqBrokerProperties.getMaxRetry());
@@ -176,5 +175,4 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
             failure(msg);
         }
     }
-
 }
