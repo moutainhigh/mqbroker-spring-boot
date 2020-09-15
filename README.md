@@ -104,6 +104,8 @@ mq-broker:
     #accessToken:
     #secret:
     #env:
+  # 开启延迟消息
+  #enabledDelayedMessage: false
 ```
 - 监听事件
 ```

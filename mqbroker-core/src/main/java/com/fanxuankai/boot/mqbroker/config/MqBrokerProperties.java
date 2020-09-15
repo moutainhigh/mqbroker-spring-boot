@@ -56,6 +56,11 @@ public class MqBrokerProperties {
     private Boolean disabledDingTalkPush = Boolean.FALSE;
 
     /**
+     * 开启延迟消息
+     */
+    private Boolean enabledDelayedMessage = Boolean.FALSE;
+
+    /**
      * 钉钉配置参数
      */
     @Data

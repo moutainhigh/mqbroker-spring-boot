@@ -6,15 +6,13 @@ import com.fanxuankai.boot.mqbroker.config.MqBrokerProperties;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
-import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.AcknowledgeMode;
-import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory.ConfirmType;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -28,10 +26,9 @@ import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * @author fanxuankai
@@ -81,10 +78,11 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public AbstractMqProducer<EmptyEventConfig> mqProducer(AmqpAdmin amqpAdmin,
-                                                           RabbitTemplate rabbitTemplate,
-                                                           RabbitProperties rabbitProperties,
-                                                           MsgSendService msgSendService) {
+    public AbstractMqProducer<RabbitEventConfig> mqProducer(AmqpAdmin amqpAdmin,
+                                                            RabbitTemplate rabbitTemplate,
+                                                            RabbitProperties rabbitProperties,
+                                                            MsgSendService msgSendService,
+                                                            MqBrokerProperties mqBrokerProperties) {
         String correlationDataRegex = ",";
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
             assert correlationData != null;
@@ -102,8 +100,22 @@ public class MqBrokerRabbitAutoConfiguration {
             String cause = "replyCode: " + replyCode + ", replyText: " + replyText + ", exchange: " + exchange;
             msgSendService.failure(routingKey, event.getKey(), cause);
         });
-        return new AbstractMqProducer<EmptyEventConfig>() {
-            private final Map<String, Object> queueCache = new ConcurrentHashMap<>(16);
+        Exchange exchange = new DirectExchange("mqBrokerRabbit.exchange");
+        amqpAdmin.declareExchange(exchange);
+        final boolean enabledDelayedMessage = Objects.equals(mqBrokerProperties.getEnabledDelayedMessage(),
+                Boolean.TRUE);
+        Exchange delayedExchange = null;
+        if (enabledDelayedMessage) {
+            final Map<String, Object> args = new HashMap<>(1);
+            args.put("x-delayed-type", "direct");
+            delayedExchange = new CustomExchange("mqBrokerRabbit.delayed.exchange", "x-delayed-message",
+                    true, false, args);
+            amqpAdmin.declareExchange(delayedExchange);
+        }
+        final Exchange fExchange = exchange;
+        final Exchange fDelayedExchange = delayedExchange;
+        return new AbstractMqProducer<RabbitEventConfig>() {
+            private final Set<String> queueCache = new HashSet<>();
 
             @Override
             public boolean isPublisherCallback() {
@@ -115,12 +127,31 @@ public class MqBrokerRabbitAutoConfiguration {
 
             @Override
             public void accept(Event<String> event) {
-                if (!queueCache.containsKey(event.getName())) {
-                    amqpAdmin.declareQueue(new Queue(event.getName()));
-                    queueCache.put(event.getName(), Boolean.TRUE);
+                if (!queueCache.contains(event.getName())) {
+                    Queue queue = new Queue(event.getName());
+                    amqpAdmin.declareQueue(queue);
+                    amqpAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange).with(queue.getName()).noargs());
+                    if (enabledDelayedMessage) {
+                        amqpAdmin.declareBinding(BindingBuilder.bind(queue).to(fDelayedExchange).with(queue.getName()).noargs());
+                    }
+                    queueCache.add(event.getName());
                 }
-                rabbitTemplate.convertAndSend(event.getName(), event,
-                        new CorrelationData(event.getName() + correlationDataRegex + event.getKey()));
+                Optional<LocalDateTime> effectiveTimeOptional = Optional.ofNullable(event.getEventConfig())
+                        .filter(eventConfig -> eventConfig instanceof RabbitEventConfig)
+                        .map(eventConfig -> (RabbitEventConfig) eventConfig)
+                        .map(RabbitEventConfig::getEffectTime);
+                long millis;
+                if (effectiveTimeOptional.isPresent()
+                        && (millis = Duration.between(LocalDateTime.now(), effectiveTimeOptional.get()).toMillis()) > 0) {
+                    rabbitTemplate.convertAndSend(fDelayedExchange.getName(),
+                            event.getName(), event, message -> {
+                                message.getMessageProperties().setHeader("x-delay", millis);
+                                return message;
+                            }, new CorrelationData(event.getName() + correlationDataRegex + event.getKey()));
+                } else {
+                    rabbitTemplate.convertAndSend(fExchange.getName(), event.getName(), event,
+                            new CorrelationData(event.getName() + correlationDataRegex + event.getKey()));
+                }
             }
         };
     }
@@ -131,4 +162,5 @@ public class MqBrokerRabbitAutoConfiguration {
         return new AbstractMqConsumer<Event<String>>() {
         };
     }
+
 }

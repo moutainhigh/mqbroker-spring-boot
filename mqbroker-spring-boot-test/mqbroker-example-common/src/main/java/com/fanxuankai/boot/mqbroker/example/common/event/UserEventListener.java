@@ -18,6 +18,6 @@ public class UserEventListener implements EventListener<User> {
 
     @Override
     public void onEvent(Event<User> event) {
-        log.info(JSON.toJSONString(event));
+        log.info("接收到事件: " + JSON.toJSONString(event));
     }
 }

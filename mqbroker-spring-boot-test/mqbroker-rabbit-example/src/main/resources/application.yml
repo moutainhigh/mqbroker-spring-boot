@@ -24,4 +24,5 @@ mq-broker:
     access-token:
     secret:
     env: dev
-    enabled: true
+    enabled: false
+  enabled-delayed-message: true
