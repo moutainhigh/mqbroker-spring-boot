@@ -1,7 +1,11 @@
 package com.fanxuankai.boot.mqbroker.service;
 
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.fanxuankai.boot.mqbroker.domain.Msg;
 import com.fanxuankai.boot.mqbroker.domain.MsgSend;
+import com.fanxuankai.boot.mqbroker.enums.Status;
 
 import java.util.List;
 
@@ -76,4 +80,20 @@ public interface MsgSendService extends IService<MsgSend> {
      */
     void produce(MsgSend msg, boolean retry);
 
+    /**
+     * 补偿
+     *
+     * @param ids ids
+     */
+    default void compensate(List<Long> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        MsgSend entity = new MsgSend();
+        entity.setRetry(0);
+        entity.setStatus(Status.CREATED.getCode());
+        update(entity, Wrappers.lambdaUpdate(MsgSend.class)
+                .in(Msg::getId, ids)
+        );
+    }
 }
