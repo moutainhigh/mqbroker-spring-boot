@@ -84,8 +84,8 @@ public class MqBrokerAutoConfiguration implements ApplicationContextAware {
                                     .setWaitMaxSeconds(listener.waitMaxSeconds())
                             , eventListener);
                 });
-        applicationContext.getBeansOfType(EventListenerConsumer.class)
+        applicationContext.getBeansOfType(EventListenerRegistryHook.class)
                 .values()
-                .forEach(eventListenerConsumer -> eventListenerConsumer.accept(EventListenerRegistry.getAllListenerMetadata()));
+                .forEach(EventListenerRegistryHook::execute);
     }
 }

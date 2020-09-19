@@ -2,6 +2,7 @@ package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
+import com.fanxuankai.boot.mqbroker.config.EventListenerRegistryHook;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
@@ -21,7 +22,7 @@ import java.util.Optional;
  */
 @Slf4j
 @Configuration
-public class MqBrokerXxlAutoConfiguration {
+public class MqBrokerXxlAutoConfiguration implements EventListenerRegistryHook {
     private final SimplePropertyPreFilter filter;
 
     public MqBrokerXxlAutoConfiguration() {
@@ -58,4 +59,8 @@ public class MqBrokerXxlAutoConfiguration {
         };
     }
 
+    @Override
+    public void execute() {
+        MqConsumerHelper.registerMqConsumer();
+    }
 }
