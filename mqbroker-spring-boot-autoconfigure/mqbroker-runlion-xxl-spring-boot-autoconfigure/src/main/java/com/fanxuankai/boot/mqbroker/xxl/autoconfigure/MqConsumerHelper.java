@@ -17,7 +17,10 @@ import javassist.bytecode.annotation.IntegerMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author fanxuankai
@@ -61,7 +64,7 @@ public class MqConsumerHelper {
         }
     }
 
-    private static final Map<String, Set<String>> PREVENT_DUPLICATE_REGISTRATION = new HashMap<>();
+    private static final Set<String> PREVENT_DUPLICATE_REGISTRATION = new HashSet<>();
 
     /**
      * 注册消费者
@@ -70,13 +73,11 @@ public class MqConsumerHelper {
         EventListenerRegistry.getAllListenerMetadata()
                 .parallelStream()
                 .map(listenerMetadata -> {
-                    Set<String> topics = PREVENT_DUPLICATE_REGISTRATION.computeIfAbsent(listenerMetadata.getGroup(),
-                            k -> new HashSet<>());
-                    if (topics.contains(listenerMetadata.getTopic())) {
+                    String key = listenerMetadata.getGroup() + "-" + listenerMetadata.getTopic();
+                    if (PREVENT_DUPLICATE_REGISTRATION.contains(key)) {
                         return null;
-                    } else {
-                        topics.add(listenerMetadata.getTopic());
                     }
+                    PREVENT_DUPLICATE_REGISTRATION.add(key);
                     try {
                         return (IMqConsumer) MqConsumerHelper.newClass(listenerMetadata)
                                 .getConstructor()
