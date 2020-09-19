@@ -17,7 +17,7 @@ import javassist.bytecode.annotation.IntegerMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 import org.springframework.util.StringUtils;
 
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author fanxuankai
@@ -61,13 +61,22 @@ public class MqConsumerHelper {
         }
     }
 
+    private static final Map<String, Set<String>> PREVENT_DUPLICATE_REGISTRATION = new HashMap<>();
+
     /**
      * 注册消费者
      */
-    public static void registerMqConsumer() {
+    public synchronized static void registerMqConsumer() {
         EventListenerRegistry.getAllListenerMetadata()
                 .parallelStream()
                 .map(listenerMetadata -> {
+                    Set<String> topics = PREVENT_DUPLICATE_REGISTRATION.computeIfAbsent(listenerMetadata.getGroup(),
+                            k -> new HashSet<>());
+                    if (topics.contains(listenerMetadata.getTopic())) {
+                        return null;
+                    } else {
+                        topics.add(listenerMetadata.getTopic());
+                    }
                     try {
                         return (IMqConsumer) MqConsumerHelper.newClass(listenerMetadata)
                                 .getConstructor()
@@ -76,6 +85,7 @@ public class MqConsumerHelper {
                         throw new RuntimeException("IMqConsumer 实例化失败", e);
                     }
                 })
+                .filter(Objects::nonNull)
                 .forEach(MqConsumerRegistry::registerMqConsumer);
     }
 }
