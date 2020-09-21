@@ -2,7 +2,6 @@ package com.fanxuankai.boot.mqbroker.consume;
 
 import com.fanxuankai.boot.mqbroker.exception.EventHandleException;
 import com.fanxuankai.boot.mqbroker.model.Event;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.List;
  * @author fanxuankai
  */
 @Component
-@Slf4j
 public class DefaultEventDistributor extends AbstractEventDistributor {
 
     @Override

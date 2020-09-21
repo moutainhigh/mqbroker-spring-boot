@@ -9,7 +9,6 @@ import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -21,7 +20,6 @@ import org.springframework.kafka.listener.MessageListener;
 /**
  * @author fanxuankai
  */
-@Slf4j
 public class MqBrokerKafkaAutoConfiguration {
 
     @Bean

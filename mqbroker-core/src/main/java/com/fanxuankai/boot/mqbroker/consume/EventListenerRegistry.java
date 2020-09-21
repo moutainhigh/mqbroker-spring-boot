@@ -2,7 +2,6 @@ package com.fanxuankai.boot.mqbroker.consume;
 
 import com.fanxuankai.boot.commons.util.GenericTypeUtils;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
@@ -11,7 +10,6 @@ import java.util.*;
  *
  * @author fanxuankai
  */
-@Slf4j
 public class EventListenerRegistry {
 
     private static final Set<ListenerMetadata> LISTENER_METADATA_SET = new HashSet<>();

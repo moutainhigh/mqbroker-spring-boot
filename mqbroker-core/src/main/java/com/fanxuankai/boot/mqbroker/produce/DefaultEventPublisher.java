@@ -1,7 +1,6 @@
 package com.fanxuankai.boot.mqbroker.produce;
 
 import com.fanxuankai.boot.mqbroker.model.Event;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
  * @author fanxuankai
  */
 @Component
-@Slf4j
 public class DefaultEventPublisher<T> extends AbstractEventPublisher<T> {
 
     @Override

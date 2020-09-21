@@ -7,7 +7,6 @@ import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import com.fanxuankai.boot.xxl.mq.autoconfigure.XxlMqConfiguration;
 import com.xxl.mq.client.message.XxlMqMessage;
 import com.xxl.mq.client.producer.XxlMqProducer;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +19,6 @@ import java.util.Optional;
 /**
  * @author fanxuankai
  */
-@Slf4j
 @Configuration
 @EnableConfigurationProperties({XxlMqConfiguration.class})
 public class MqBrokerXxlAutoConfiguration {

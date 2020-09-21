@@ -4,7 +4,6 @@ import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.xxl.mq.client.XxlMqClientProperties;
 import com.xxl.mq.client.consumer.IMqConsumer;
 import com.xxl.mq.client.factory.XxlMqClientFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 /**
  * @author xuxueli 2018-11-18 21:18:10
  */
-@Slf4j
 public class MqBrokerLiteXxlMqSpringClientFactory implements ApplicationContextAware, DisposableBean {
 
     // ---------------------- param  ----------------------
