@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -58,7 +57,7 @@ public class Msg {
     /**
      * 消息队列中间件的生效时间
      */
-    private LocalDateTime effectTime;
+    private Date effectTime;
     /**
      * 创建日期
      */

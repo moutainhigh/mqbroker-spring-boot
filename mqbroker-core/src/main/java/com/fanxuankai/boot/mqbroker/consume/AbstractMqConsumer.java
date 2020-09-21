@@ -13,7 +13,9 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.util.StringUtils;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -54,7 +56,9 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         msg.setStatus(Status.RUNNING.getCode());
         msg.setRetry(0);
         msg.setRetryCount(event.getRetryCount());
-        msg.setEffectTime(event.getEffectTime());
+        Optional.ofNullable(event.getEffectTime())
+                .map(effectTime -> Date.from(effectTime.atZone(ZoneId.systemDefault()).toInstant()))
+                .ifPresent(msg::setEffectTime);
         Date now = new Date();
         msg.setCreateDate(now);
         msg.setLastModifiedDate(now);

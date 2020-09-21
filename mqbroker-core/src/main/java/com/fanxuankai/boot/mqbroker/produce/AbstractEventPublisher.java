@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +96,9 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         msg.setStatus(Status.RUNNING.getCode());
         Optional.ofNullable(event.getRetryCount())
                 .ifPresent(msg::setRetryCount);
-        msg.setEffectTime(event.getEffectTime());
+        Optional.ofNullable(event.getEffectTime())
+                .map(localDateTime -> Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()))
+                .ifPresent(msg::setEffectTime);
         Date now = new Date();
         msg.setCreateDate(now);
         msg.setLastModifiedDate(now);

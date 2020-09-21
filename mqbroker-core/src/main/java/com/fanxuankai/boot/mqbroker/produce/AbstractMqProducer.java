@@ -5,6 +5,7 @@ import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 
 import javax.annotation.Resource;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -22,8 +23,10 @@ public abstract class AbstractMqProducer implements MqProducer<MsgSend>, Consume
                 .setGroup(msg.getMsgGroup())
                 .setName(msg.getTopic())
                 .setKey(msg.getCode())
-                .setData(msg.getData())
-                .setEffectTime(msg.getEffectTime());
+                .setData(msg.getData());
+        Optional.ofNullable(msg.getEffectTime())
+                .map(effectiveTime -> effectiveTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .ifPresent(event::setEffectTime);
         Optional.ofNullable(msg.getRetryCount())
                 .ifPresent(event::setRetryCount);
         accept(event);
