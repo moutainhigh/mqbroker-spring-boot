@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 事件
@@ -30,7 +31,11 @@ public class Event<T> implements Serializable {
      */
     private T data;
     /**
-     * 事件配置, 可选
+     * 重试次数
      */
-    private EventConfig eventConfig;
+    private Integer retryCount;
+    /**
+     * 生效时间
+     */
+    private LocalDateTime effectTime;
 }

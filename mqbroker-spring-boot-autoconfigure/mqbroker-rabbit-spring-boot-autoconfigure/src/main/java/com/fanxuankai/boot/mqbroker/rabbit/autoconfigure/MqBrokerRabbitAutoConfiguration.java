@@ -78,11 +78,11 @@ public class MqBrokerRabbitAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public AbstractMqProducer<RabbitEventConfig> mqProducer(AmqpAdmin amqpAdmin,
-                                                            RabbitTemplate rabbitTemplate,
-                                                            RabbitProperties rabbitProperties,
-                                                            MsgSendService msgSendService,
-                                                            MqBrokerProperties mqBrokerProperties) {
+    public AbstractMqProducer mqProducer(AmqpAdmin amqpAdmin,
+                                         RabbitTemplate rabbitTemplate,
+                                         RabbitProperties rabbitProperties,
+                                         MsgSendService msgSendService,
+                                         MqBrokerProperties mqBrokerProperties) {
         String correlationDataRegex = ",";
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
             assert correlationData != null;
@@ -114,7 +114,7 @@ public class MqBrokerRabbitAutoConfiguration {
         }
         final Exchange fExchange = exchange;
         final Exchange fDelayedExchange = delayedExchange;
-        return new AbstractMqProducer<RabbitEventConfig>() {
+        return new AbstractMqProducer() {
             private final Set<String> queueCache = new HashSet<>();
 
             @Override
@@ -136,10 +136,7 @@ public class MqBrokerRabbitAutoConfiguration {
                     }
                     queueCache.add(event.getName());
                 }
-                Optional<LocalDateTime> effectiveTimeOptional = Optional.ofNullable(event.getEventConfig())
-                        .filter(eventConfig -> eventConfig instanceof RabbitEventConfig)
-                        .map(eventConfig -> (RabbitEventConfig) eventConfig)
-                        .map(RabbitEventConfig::getEffectTime);
+                Optional<LocalDateTime> effectiveTimeOptional = Optional.ofNullable(event.getEffectTime());
                 long millis;
                 if (effectiveTimeOptional.isPresent()
                         && (millis = Duration.between(LocalDateTime.now(), effectiveTimeOptional.get()).toMillis()) > 0) {

@@ -48,7 +48,7 @@ public class MqBrokerProperties {
     private Map<String, EventStrategy> eventStrategy = Collections.emptyMap();
 
     @NestedConfigurationProperty
-    private DingTalk dingTalk;
+    private DingTalk dingTalk = new DingTalk();
 
     /**
      * 禁用钉钉推送

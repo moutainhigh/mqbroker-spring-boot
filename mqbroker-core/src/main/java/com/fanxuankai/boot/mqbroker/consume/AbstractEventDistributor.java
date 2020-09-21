@@ -10,6 +10,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -34,7 +35,7 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void accept(MsgReceive msg) {
-        distribute(new Event<>()
+        Event<Object> event = new Event<>()
                 .setGroup(msg.getMsgGroup())
                 .setName(msg.getTopic())
                 .setKey(msg.getCode())
@@ -42,7 +43,11 @@ public abstract class AbstractEventDistributor implements EventDistributor, Cons
                         EventListenerRegistry.getDataType(new ListenerMetadata()
                                 .setGroup(msg.getMsgGroup())
                                 .setTopic(msg.getTopic())
-                        ))));
+                        )))
+                .setRetryCount(msg.getRetryCount());
+        Optional.ofNullable(msg.getRetryCount())
+                .ifPresent(event::setRetryCount);
+        distribute(event);
         msgReceiveService.success(msg);
     }
 

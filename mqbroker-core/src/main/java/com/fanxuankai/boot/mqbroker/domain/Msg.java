@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -43,13 +44,21 @@ public class Msg {
      */
     private String hostAddress;
     /**
-     * 重试
+     * 重试的次数
      */
     private Integer retry;
     /**
      * 失败原因
      */
     private String cause;
+    /**
+     * 消息中间件的重试次数
+     */
+    private Integer retryCount;
+    /**
+     * 消息队列中间件的生效时间
+     */
+    private LocalDateTime effectTime;
     /**
      * 创建日期
      */

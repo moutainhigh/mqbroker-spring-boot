@@ -53,6 +53,8 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         msg.setData(event.getData());
         msg.setStatus(Status.RUNNING.getCode());
         msg.setRetry(0);
+        msg.setRetryCount(event.getRetryCount());
+        msg.setEffectTime(event.getEffectTime());
         Date now = new Date();
         msg.setCreateDate(now);
         msg.setLastModifiedDate(now);

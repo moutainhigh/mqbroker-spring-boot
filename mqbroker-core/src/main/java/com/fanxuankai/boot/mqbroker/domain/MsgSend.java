@@ -11,8 +11,5 @@ import lombok.EqualsAndHashCode;
 @TableName("mq_broker_msg_send")
 @Data
 public class MsgSend extends Msg {
-    /**
-     * 额外配置
-     */
-    private String msgConfig;
+
 }

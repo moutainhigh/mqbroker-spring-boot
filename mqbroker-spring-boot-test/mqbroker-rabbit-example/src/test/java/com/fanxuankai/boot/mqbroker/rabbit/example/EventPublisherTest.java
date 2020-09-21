@@ -4,7 +4,6 @@ import com.fanxuankai.boot.mqbroker.example.common.UserManager;
 import com.fanxuankai.boot.mqbroker.example.common.domain.User;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.EventPublisher;
-import com.fanxuankai.boot.mqbroker.rabbit.autoconfigure.RabbitEventConfig;
 import com.fanxuankai.commons.util.concurrent.Threads;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,9 +25,7 @@ public class EventPublisherTest {
     @Test
     public void publish() {
         List<Event<User>> list = UserManager.mockData();
-        list.forEach(userEvent -> userEvent.setEventConfig(new RabbitEventConfig()
-                // 延迟消息
-                .setEffectTime(LocalDateTime.now().plusSeconds(30))));
+        list.forEach(userEvent -> userEvent.setEffectTime(LocalDateTime.now().plusMinutes(5)));
         eventPublisher.publish(list);
         Threads.sleep(30, TimeUnit.MINUTES);
     }

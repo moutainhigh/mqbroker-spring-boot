@@ -5,8 +5,8 @@ import com.alibaba.fastjson.TypeReference;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
-import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
+import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,9 @@ public class MqBrokerKafkaAutoConfiguration {
     @Bean
     public KafkaMessageListenerContainer<String, String> messageListenerContainer(ConsumerFactory<String, Object> consumerFactory
             , AbstractMqConsumer<String> mqConsumer) {
-        String[] topics = EventListenerRegistry.getAllListenerMetadata().toArray(new String[0]);
+        String[] topics = EventListenerRegistry.getAllListenerMetadata()
+                .stream()
+                .map(ListenerMetadata::getTopic).toArray(String[]::new);
         ContainerProperties properties = new ContainerProperties(topics);
         properties.setGroupId("mqbroker-group");
         properties.setMessageListener((MessageListener<String, String>) data -> mqConsumer.accept(data.value()));
@@ -36,8 +38,8 @@ public class MqBrokerKafkaAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public AbstractMqProducer<EmptyEventConfig> mqProducer(KafkaTemplate<String, String> kafkaTemplate) {
-        return new AbstractMqProducer<EmptyEventConfig>() {
+    public AbstractMqProducer mqProducer(KafkaTemplate<String, String> kafkaTemplate) {
+        return new AbstractMqProducer() {
             @Override
             public boolean isPublisherCallback() {
                 return false;

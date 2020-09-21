@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.mqbroker.consume.AbstractMqConsumer;
 import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.consume.MqConsumer;
-import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +25,8 @@ import org.springframework.context.annotation.Bean;
 public class MqBrokerRocketAutoConfiguration {
 
     @Bean
-    public AbstractMqProducer<EmptyEventConfig> mqProducer(RocketMQTemplate template) {
-        return new AbstractMqProducer<EmptyEventConfig>() {
+    public AbstractMqProducer mqProducer(RocketMQTemplate template) {
+        return new AbstractMqProducer() {
             @Override
             public boolean isPublisherCallback() {
                 return false;

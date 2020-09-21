@@ -1,11 +1,7 @@
 package com.fanxuankai.boot.mqbroker.produce;
 
-import com.alibaba.fastjson.JSON;
-import com.fanxuankai.boot.commons.util.GenericTypeUtils;
 import com.fanxuankai.boot.mqbroker.domain.MsgSend;
-import com.fanxuankai.boot.mqbroker.model.EmptyEventConfig;
 import com.fanxuankai.boot.mqbroker.model.Event;
-import com.fanxuankai.boot.mqbroker.model.EventConfig;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 
 import javax.annotation.Resource;
@@ -13,19 +9,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * @param <E> the type of EventConfig
  * @author fanxuankai
  */
-public abstract class AbstractMqProducer<E extends EventConfig> implements MqProducer<MsgSend>,
-        Consumer<Event<String>> {
+public abstract class AbstractMqProducer implements MqProducer<MsgSend>, Consumer<Event<String>> {
 
-    private final Class<E> eClass;
     @Resource
     private MsgSendService msgSendService;
-
-    protected AbstractMqProducer() {
-        eClass = GenericTypeUtils.getGenericType(getClass(), AbstractMqProducer.class, 0);
-    }
 
     @Override
     public void produce(MsgSend msg) {
@@ -33,11 +22,10 @@ public abstract class AbstractMqProducer<E extends EventConfig> implements MqPro
                 .setGroup(msg.getMsgGroup())
                 .setName(msg.getTopic())
                 .setKey(msg.getCode())
-                .setData(msg.getData());
-        Optional.ofNullable(msg.getMsgConfig())
-                .map(s -> JSON.parseObject(msg.getMsgConfig(), eClass))
-                .filter(e -> !(e instanceof EmptyEventConfig))
-                .ifPresent(event::setEventConfig);
+                .setData(msg.getData())
+                .setEffectTime(msg.getEffectTime());
+        Optional.ofNullable(msg.getRetryCount())
+                .ifPresent(event::setRetryCount);
         accept(event);
         if (!isPublisherCallback()) {
             msgSendService.success(msg);

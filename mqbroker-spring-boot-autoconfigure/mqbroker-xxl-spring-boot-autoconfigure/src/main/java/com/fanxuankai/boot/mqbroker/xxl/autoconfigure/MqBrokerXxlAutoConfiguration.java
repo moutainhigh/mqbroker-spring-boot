@@ -34,22 +34,18 @@ public class MqBrokerXxlAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
-    public AbstractMqProducer<XxlEventConfig> mqProducer() {
-        return new AbstractMqProducer<XxlEventConfig>() {
+    public AbstractMqProducer mqProducer() {
+        return new AbstractMqProducer() {
             @Override
             public void accept(Event<String> event) {
                 XxlMqMessage mqMessage = new XxlMqMessage();
                 mqMessage.setTopic(event.getName());
                 mqMessage.setGroup(event.getGroup());
-                Optional.ofNullable(event.getEventConfig())
-                        .map(eventConfig -> (XxlEventConfig) eventConfig)
-                        .ifPresent(eventConfig -> {
-                            Optional.ofNullable(eventConfig.getRetryCount())
-                                    .ifPresent(mqMessage::setRetryCount);
-                            Optional.ofNullable(eventConfig.getEffectTime())
-                                    .map(localDateTime -> Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()))
-                                    .ifPresent(mqMessage::setEffectTime);
-                        });
+                Optional.ofNullable(event.getRetryCount())
+                        .ifPresent(mqMessage::setRetryCount);
+                Optional.ofNullable(event.getEffectTime())
+                        .map(localDateTime -> Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()))
+                        .ifPresent(mqMessage::setEffectTime);
                 mqMessage.setData(JSON.toJSONString(event, filter));
                 XxlMqProducer.produce(mqMessage);
             }

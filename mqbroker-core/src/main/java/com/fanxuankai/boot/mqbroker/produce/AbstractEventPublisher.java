@@ -93,9 +93,9 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         }
         msg.setRetry(0);
         msg.setStatus(Status.RUNNING.getCode());
-        Optional.ofNullable(event.getEventConfig())
-                .map(JSON::toJSONString)
-                .ifPresent(msg::setMsgConfig);
+        Optional.ofNullable(event.getRetryCount())
+                .ifPresent(msg::setRetryCount);
+        msg.setEffectTime(event.getEffectTime());
         Date now = new Date();
         msg.setCreateDate(now);
         msg.setLastModifiedDate(now);
