@@ -24,12 +24,6 @@ public class EventPublisherTest {
     @Test
     public void publish() {
         List<Event<User>> list = UserManager.mockData();
-//        list.forEach(userEvent ->
-//                userEvent.setGroup("mqbroker-user")
-//                        .setEventConfig(new XxlEventConfig()
-//                                .setRetryCount(2)
-//                                // 5分钟后生效
-//                                .setEffectTime(LocalDateTime.now().plusSeconds(5))));
         eventPublisher.publish(list);
         Threads.sleep(30, TimeUnit.SECONDS);
     }

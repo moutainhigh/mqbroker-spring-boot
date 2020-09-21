@@ -52,7 +52,7 @@ public class Msg {
      */
     private String cause;
     /**
-     * 消息中间件的重试次数
+     * 消息队列中间件的重试次数
      */
     private Integer retryCount;
     /**

@@ -1,7 +1,6 @@
 package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SimplePropertyPreFilter;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
@@ -25,12 +24,6 @@ import java.util.Optional;
 @Configuration
 @EnableConfigurationProperties({XxlMqConfiguration.class})
 public class MqBrokerXxlAutoConfiguration {
-    private final SimplePropertyPreFilter filter;
-
-    public MqBrokerXxlAutoConfiguration() {
-        filter = new SimplePropertyPreFilter();
-        filter.getExcludes().add("eventConfig");
-    }
 
     @Bean
     @ConditionalOnMissingBean(MqProducer.class)
@@ -46,7 +39,7 @@ public class MqBrokerXxlAutoConfiguration {
                 Optional.ofNullable(event.getEffectTime())
                         .map(localDateTime -> Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()))
                         .ifPresent(mqMessage::setEffectTime);
-                mqMessage.setData(JSON.toJSONString(event, filter));
+                mqMessage.setData(JSON.toJSONString(event));
                 XxlMqProducer.produce(mqMessage);
             }
 
