@@ -7,6 +7,7 @@ import com.fanxuankai.boot.mqbroker.domain.Msg;
 import com.fanxuankai.boot.mqbroker.domain.MsgSend;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.model.Event;
+import com.fanxuankai.boot.mqbroker.service.MqBrokerDingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgSendService;
 import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,8 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     protected MsgSendService msgSendService;
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+    @Resource
+    private MqBrokerDingTalkClientHelper mqBrokerDingTalkClientHelper;
 
     private boolean exists(Event<T> event) {
         return msgSendService.count(Wrappers.lambdaQuery(MsgSend.class)
@@ -44,6 +47,7 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
     protected void persistence(Event<T> event, boolean async) {
         if (exists(event)) {
             log.info("防重生产: {}", event.getKey());
+            mqBrokerDingTalkClientHelper.push("防重生产", event.getGroup(), event.getName(), event.getKey());
             return;
         }
         MsgSend msgSend = createMessageSend(event);
@@ -63,6 +67,7 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
                 .filter(event -> {
                     if (exists(event)) {
                         log.info("防重生产: {}", event.getKey());
+                        mqBrokerDingTalkClientHelper.push("防重生产", event.getGroup(), event.getName(), event.getKey());
                         return false;
                     }
                     return true;

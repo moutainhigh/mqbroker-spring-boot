@@ -37,6 +37,8 @@ public class MqConsumerHelper {
             Annotation classAnnotation = new Annotation(MqConsumer.class.getName(), constPool);
             if (StringUtils.hasText(group)) {
                 classAnnotation.addMemberValue("group", new StringMemberValue(group, constPool));
+            } else {
+                classAnnotation.addMemberValue("group", new StringMemberValue(MqConsumer.DEFAULT_GROUP, constPool));
             }
             classAnnotation.addMemberValue("name", new StringMemberValue(name, constPool));
             classAnnotation.addMemberValue("topic", new StringMemberValue(topic, constPool));

@@ -1,9 +1,6 @@
 package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
-import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.ListenerMetadata;
-import com.xxl.mq.client.consumer.IMqConsumer;
-import com.xxl.mq.client.consumer.MqConsumerRegistry;
 import com.xxl.mq.client.consumer.annotation.MqConsumer;
 import com.xxl.mq.client.consumer.thread.ConsumerThread;
 import javassist.ClassClassPath;
@@ -17,10 +14,8 @@ import javassist.bytecode.annotation.IntegerMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 import org.springframework.util.StringUtils;
 
-import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author fanxuankai
@@ -33,14 +28,14 @@ public class MqConsumerHelper {
      * @param listenerMetadata the listener metadata
      * @return new class
      */
-    private static Class<?> newClass(ListenerMetadata listenerMetadata) {
+    public static Class<?> newClass(ListenerMetadata listenerMetadata) {
         try {
             ClassPool pool = ClassPool.getDefault();
             String templateClassname = XxlMqConsumer.class.getName();
             pool.insertClassPath(new ClassClassPath(XxlMqConsumer.class));
             String topic = listenerMetadata.getTopic();
-            CtClass clazz = pool.makeClass(templateClassname + "@" + topic,
-                    pool.getCtClass(templateClassname));
+            String classname = templateClassname + UUID.randomUUID().toString().replaceAll("-", "") + "@" + topic;
+            CtClass clazz = pool.makeClass(classname, pool.getCtClass(templateClassname));
             ClassFile classFile = clazz.getClassFile();
             ConstPool constPool = classFile.getConstPool();
             Annotation classAnnotation = new Annotation(MqConsumer.class.getName(), constPool);
@@ -48,7 +43,7 @@ public class MqConsumerHelper {
             if (StringUtils.hasText(group)) {
                 classAnnotation.addMemberValue("group", new StringMemberValue(group, constPool));
             } else {
-                classAnnotation.addMemberValue("group", new StringMemberValue("default", constPool));
+                classAnnotation.addMemberValue("group", new StringMemberValue(MqConsumer.DEFAULT_GROUP, constPool));
             }
             classAnnotation.addMemberValue("topic", new StringMemberValue(topic, constPool));
             classAnnotation.addMemberValue("waitRateSeconds", new IntegerMemberValue(constPool,
@@ -64,29 +59,4 @@ public class MqConsumerHelper {
         }
     }
 
-    private static final Set<String> PREVENT_DUPLICATE_REGISTRATION = new HashSet<>();
-
-    /**
-     * 注册消费者
-     */
-    public synchronized static void registerMqConsumer() {
-        EventListenerRegistry.getAllListenerMetadata()
-                .parallelStream()
-                .map(listenerMetadata -> {
-                    String key = listenerMetadata.getGroup() + "-" + listenerMetadata.getTopic();
-                    if (PREVENT_DUPLICATE_REGISTRATION.contains(key)) {
-                        return null;
-                    }
-                    PREVENT_DUPLICATE_REGISTRATION.add(key);
-                    try {
-                        return (IMqConsumer) MqConsumerHelper.newClass(listenerMetadata)
-                                .getConstructor()
-                                .newInstance();
-                    } catch (Exception e) {
-                        throw new RuntimeException("IMqConsumer 实例化失败", e);
-                    }
-                })
-                .filter(Objects::nonNull)
-                .forEach(MqConsumerRegistry::registerMqConsumer);
-    }
 }

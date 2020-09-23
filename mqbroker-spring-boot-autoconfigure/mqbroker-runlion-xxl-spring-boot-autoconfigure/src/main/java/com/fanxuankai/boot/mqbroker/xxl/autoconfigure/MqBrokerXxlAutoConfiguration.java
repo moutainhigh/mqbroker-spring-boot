@@ -2,9 +2,12 @@ package com.fanxuankai.boot.mqbroker.xxl.autoconfigure;
 
 import com.alibaba.fastjson.JSON;
 import com.fanxuankai.boot.mqbroker.config.EventListenerRegistryHook;
+import com.fanxuankai.boot.mqbroker.consume.EventListenerRegistry;
 import com.fanxuankai.boot.mqbroker.model.Event;
 import com.fanxuankai.boot.mqbroker.produce.AbstractMqProducer;
 import com.fanxuankai.boot.mqbroker.produce.MqProducer;
+import com.xxl.mq.client.consumer.IMqConsumer;
+import com.xxl.mq.client.consumer.MqConsumerRegistry;
 import com.xxl.mq.client.message.XxlMqMessage;
 import com.xxl.mq.client.producer.XxlMqProducer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -48,6 +51,17 @@ public class MqBrokerXxlAutoConfiguration implements EventListenerRegistryHook {
 
     @Override
     public void execute() {
-        MqConsumerHelper.registerMqConsumer();
+        EventListenerRegistry.getAllListenerMetadata()
+                .parallelStream()
+                .map(listenerMetadata -> {
+                    try {
+                        return (IMqConsumer) MqConsumerHelper.newClass(listenerMetadata)
+                                .getConstructor()
+                                .newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException("IMqConsumer 实例化失败", e);
+                    }
+                })
+                .forEach(MqConsumerRegistry::registerMqConsumer);
     }
 }

@@ -30,7 +30,7 @@ public class MqBrokerDingTalkClientHelper {
     @Resource
     private MqBrokerProperties mqBrokerProperties;
 
-    public void push(String title, String topic, String code, int retry, String ip) {
+    public void push(String title, String group, String topic, String code) {
         if (!Objects.equals(mqBrokerProperties.getDingTalk().getEnabled(), Boolean.TRUE)) {
             return;
         }
@@ -39,6 +39,29 @@ public class MqBrokerDingTalkClientHelper {
         OapiRobotSendRequest.Markdown markdown = new OapiRobotSendRequest.Markdown();
         markdown.setTitle(title);
         markdown.setText("#### " + title + "\n" +
+                "> 分组: " + group + "\n\n" +
+                "> 主题: " + topic + "\n\n" +
+                "> 代码: " + code + "\n\n" +
+                "> 服务器环境: " + mqBrokerProperties.getDingTalk().getEnv() + "\n\n"
+        );
+        request.setMarkdown(markdown);
+        try {
+            newDingTalkClient().execute(request);
+        } catch (ApiException e) {
+            log.error("钉钉推送异常", e);
+        }
+    }
+
+    public void push(String title, String group, String topic, String code, int retry, String ip) {
+        if (!Objects.equals(mqBrokerProperties.getDingTalk().getEnabled(), Boolean.TRUE)) {
+            return;
+        }
+        OapiRobotSendRequest request = new OapiRobotSendRequest();
+        request.setMsgtype("markdown");
+        OapiRobotSendRequest.Markdown markdown = new OapiRobotSendRequest.Markdown();
+        markdown.setTitle(title);
+        markdown.setText("#### " + title + "\n" +
+                "> 分组: " + group + "\n\n" +
                 "> 主题: " + topic + "\n\n" +
                 "> 代码: " + code + "\n\n" +
                 "> 重试次数: " + retry + "\n\n" +

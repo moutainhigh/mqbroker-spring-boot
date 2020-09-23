@@ -6,6 +6,7 @@ import com.fanxuankai.boot.mqbroker.domain.Msg;
 import com.fanxuankai.boot.mqbroker.domain.MsgReceive;
 import com.fanxuankai.boot.mqbroker.enums.Status;
 import com.fanxuankai.boot.mqbroker.model.Event;
+import com.fanxuankai.boot.mqbroker.service.MqBrokerDingTalkClientHelper;
 import com.fanxuankai.boot.mqbroker.service.MsgReceiveService;
 import com.fanxuankai.commons.util.ThrowableUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +25,20 @@ import java.util.function.Function;
 @Slf4j
 public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T, Event<String>> {
     private MsgReceiveService msgReceiveService;
+    private MqBrokerDingTalkClientHelper mqBrokerDingTalkClientHelper;
 
     private MsgReceiveService getMsgReceiveService() {
         if (msgReceiveService == null) {
             msgReceiveService = ApplicationContexts.getBean(MsgReceiveService.class);
         }
         return msgReceiveService;
+    }
+
+    public MqBrokerDingTalkClientHelper getMqBrokerDingTalkClientHelper() {
+        if (mqBrokerDingTalkClientHelper == null) {
+            mqBrokerDingTalkClientHelper = ApplicationContexts.getBean(MqBrokerDingTalkClientHelper.class);
+        }
+        return mqBrokerDingTalkClientHelper;
     }
 
     private boolean exists(Event<String> event) {
@@ -46,6 +55,7 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         MsgReceiveService msgReceiveService = getMsgReceiveService();
         if (exists(event)) {
             log.info("防重消费: {}", event.getKey());
+            getMqBrokerDingTalkClientHelper().push("防重消费", event.getGroup(), event.getName(), event.getKey());
             return;
         }
         MsgReceive msg = new MsgReceive();

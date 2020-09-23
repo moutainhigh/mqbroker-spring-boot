@@ -139,7 +139,8 @@ public class MsgSendServiceImpl extends ServiceImpl<MsgSendMapper, MsgSend>
             entity.setStatus(Status.FAILURE.getCode());
         }
         update(entity, lambda);
-        mqBrokerDingTalkClientHelper.push("消息发送失败", msg.getTopic(), msg.getCode(), msg.getRetry(), hostAddress);
+        mqBrokerDingTalkClientHelper.push("消息发送失败", msg.getMsgGroup(), msg.getTopic(), msg.getCode(), msg.getRetry(),
+                hostAddress);
     }
 
     @Override

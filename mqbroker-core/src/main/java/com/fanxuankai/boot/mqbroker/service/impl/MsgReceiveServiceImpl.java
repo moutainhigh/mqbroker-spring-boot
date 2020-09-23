@@ -126,7 +126,8 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
         update(entity, new UpdateWrapper<MsgReceive>().lambda()
                 .eq(Msg::getId, msg.getId())
                 .eq(Msg::getStatus, Status.RUNNING.getCode()));
-        mqBrokerDingTalkClientHelper.push("消息消费失败", msg.getTopic(), msg.getCode(), msg.getRetry(), hostAddress);
+        mqBrokerDingTalkClientHelper.push("消息消费失败", msg.getMsgGroup(), msg.getTopic(), msg.getCode(), msg.getRetry(),
+                hostAddress);
     }
 
     @Override
