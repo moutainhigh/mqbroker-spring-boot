@@ -12,17 +12,17 @@ spring:
     host: localhost
     port: 5672
 #mybatis-plus配置控制台打印完整带参数SQL语句
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  pagination-interceptor:
-    limit: -1
-mq-broker:
-  msg-size: 10000
-  ding-talk:
-    url: https://oapi.dingtalk.com/robot/send
-    access-token:
-    secret:
-    env: dev
-    enabled: false
-  enabled-delayed-message: true
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  pagination-interceptor:
+#    limit: -1
+#mq-broker:
+#  msg-size: 10000
+#  ding-talk:
+#    url: https://oapi.dingtalk.com/robot/send
+#    access-token:
+#    secret:
+#    env: dev
+#    enabled: false
+#  enabled-delayed-message: true

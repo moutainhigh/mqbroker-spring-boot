@@ -4,12 +4,10 @@ spring:
     username: root
     password: HzB!OPxxE$5CwJIZ
     driver-class-name: com.mysql.cj.jdbc.Driver
-mq-broker:
-  msg-size: 10000
 xxl:
   mq:
     admin:
       address: http://localhost:9501/xxl-mq-admin
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  level:
+    com.xxl.mq: error
