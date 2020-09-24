@@ -54,7 +54,7 @@ public abstract class AbstractMqConsumer<T> implements MqConsumer<T>, Function<T
         Event<String> event = apply(t);
         MsgReceiveService msgReceiveService = getMsgReceiveService();
         if (exists(event)) {
-            log.info("防重消费: {}", event.getKey());
+            log.info("防重消费: " + event.getKey());
             getMqBrokerDingTalkClientHelper().push("防重消费", event.getGroup(), event.getName(), event.getKey());
             return;
         }

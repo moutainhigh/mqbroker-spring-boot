@@ -10,4 +10,4 @@ xxl:
       address: http://localhost:9501/xxl-mq-admin
 logging:
   level:
-    com.xxl.mq: error
+    com.xxl: error

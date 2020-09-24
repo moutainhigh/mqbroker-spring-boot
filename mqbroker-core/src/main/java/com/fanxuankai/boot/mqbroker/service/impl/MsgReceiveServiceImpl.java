@@ -157,7 +157,7 @@ public class MsgReceiveServiceImpl extends ServiceImpl<MsgReceiveMapper, MsgRece
                 eventDistributorFactory.get(msg).accept(msg);
                 success = true;
             } catch (Throwable throwable) {
-                log.error("消息消费失败, code: {}", msg.getCode(), throwable);
+                log.error("消息消费失败, code: " + msg.getCode(), throwable);
                 msg.setCause(throwable.getLocalizedMessage());
                 Threads.sleep(1, TimeUnit.SECONDS);
             }

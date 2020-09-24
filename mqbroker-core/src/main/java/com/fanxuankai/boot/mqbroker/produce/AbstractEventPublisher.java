@@ -46,7 +46,7 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
 
     protected void persistence(Event<T> event, boolean async) {
         if (exists(event)) {
-            log.info("防重生产: {}", event.getKey());
+            log.info("防重生产: " + event.getKey());
             mqBrokerDingTalkClientHelper.push("防重生产", event.getGroup(), event.getName(), event.getKey());
             return;
         }
@@ -66,7 +66,7 @@ public abstract class AbstractEventPublisher<T> implements EventPublisher<T> {
         events = events.stream()
                 .filter(event -> {
                     if (exists(event)) {
-                        log.info("防重生产: {}", event.getKey());
+                        log.info("防重生产: " + event.getKey());
                         mqBrokerDingTalkClientHelper.push("防重生产", event.getGroup(), event.getName(), event.getKey());
                         return false;
                     }

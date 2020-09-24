@@ -21,7 +21,7 @@ public class AtMostOnceEventDistributor extends AbstractEventDistributor {
                 eventListener.onEvent(event);
                 break;
             } catch (Exception e) {
-                log.error("事件处理异常, key: {}", event.getKey(), e);
+                log.error("事件处理异常, key: " + event.getKey(), e);
             }
         }
     }
